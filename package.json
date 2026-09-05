@@ -15,6 +15,7 @@
     "db:push:pg": "npm run db:push:pg --prefix server",
     "db:generate:pg": "npm run db:generate:pg --prefix server",
     "prod": "npm run build && npm start --prefix server",
+    "render-build": "node scripts/render-build.mjs",
     "deploy:check": "node scripts/deploy-check.mjs",
     "test:e2e": "node e2e.test.mjs && node e2e.flow.test.mjs && node e2e.admin.test.mjs"
   },

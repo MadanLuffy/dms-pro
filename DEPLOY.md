@@ -75,6 +75,18 @@ Preflight: `npm run deploy:check` after `npm run build`.
 - API: `CLIENT_ORIGIN=https://app.example.com`
 - Multi-instance: put a Redis-backed limiter in front of `/api/auth/login` (in-memory store is per process only)
 
-## 5. CI
+## 5. Render
+
+Web Service from the GitHub repo. **Root Directory** empty (repo root).
+
+| Setting | Value |
+| --- | --- |
+| Build Command | `npm run render-build` |
+| Start Command | `npm start` |
+| Node | 20 |
+
+Required env: `NODE_ENV=production`, `JWT_SECRET`, `DATABASE_URL` (Render Postgres Internal Database URL), `CLIENT_ORIGIN=https://YOUR-SERVICE.onrender.com`, `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD`, `BOOTSTRAP_ADMIN_NAME`, `TRUST_PROXY=1`.
+
+## 6. CI
 
 `.github/workflows/e2e.yml` installs Chrome, pushes SQLite, starts API + Vite preview, and runs `npm run test:e2e`.
