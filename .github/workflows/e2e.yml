@@ -1,0 +1,49 @@
+name: e2e
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: file:./dev.db
+      JWT_SECRET: ci-e2e-secret-not-for-production
+      CLIENT_ORIGIN: http://127.0.0.1:5188
+      PORT: 5120
+      E2E_BASE_URL: http://127.0.0.1:5188
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: browser-actions/setup-chrome@v1
+        id: chrome
+      - name: Install
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          if [ -f server/package-lock.json ]; then npm ci --prefix server; else npm install --prefix server; fi
+      - name: Database
+        working-directory: server
+        run: npx prisma db push && node prisma/seed.js
+      - name: Build client
+        run: npm run build
+      - name: E2E
+        env:
+          PUPPETEER_EXECUTABLE_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          npm start --prefix server &
+          npx vite preview --host 127.0.0.1 --port 5188 --strictPort &
+          for i in $(seq 1 40); do
+            if curl -sf http://127.0.0.1:5120/api/health >/dev/null && curl -sf http://127.0.0.1:5188/ >/dev/null; then
+              echo "stack ready"
+              npm run test:e2e
+              exit $?
+            fi
+            sleep 1
+          done
+          echo "servers did not become ready"
+          exit 1

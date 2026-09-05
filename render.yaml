@@ -1,0 +1,36 @@
+databases:
+  - name: dms-pro-db
+    plan: free
+
+services:
+  - type: web
+    name: dms-pro
+    runtime: node
+    rootDir: .
+    plan: free
+    buildCommand: npm install && cd server && npm install && cd .. && npm run build && npm run db:generate:pg && npm run db:push:pg && npm run db:seed
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_ORIGIN
+        value: https://dms-pro.onrender.com
+      - key: JWT_SECRET
+        generateValue: true
+      - key: TRUST_PROXY
+        value: "1"
+      - key: COOKIE_SAMESITE
+        value: lax
+      - key: ALLOW_DEMO_SEED
+        value: "false"
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_ADMIN_NAME
+        value: Administrator
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dms-pro-db
+          property: connectionString

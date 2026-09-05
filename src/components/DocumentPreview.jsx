@@ -1,0 +1,184 @@
+import { useCallback, useEffect, useState } from 'react';
+import { ZoomIn, ZoomOut, RotateCw, FileText, Table, Download, Loader2, AlertTriangle } from 'lucide-react';
+import { attachmentUrl } from '../lib/api';
+import { formatBytes } from '../utils/format';
+
+const typeFromMime = (mime) => {
+  if (!mime) return 'unknown';
+  if (mime === 'application/pdf') return 'pdf';
+  if (mime.includes('wordprocessingml') || mime === 'application/msword') return 'docx';
+  if (mime.includes('spreadsheetml') || mime.includes('ms-excel')) return 'xlsx';
+  if (mime === 'text/csv') return 'csv';
+  if (mime.startsWith('image/')) return 'image';
+  return 'other';
+};
+
+export default function DocumentPreview({ attachment }) {
+  const [zoom, setZoom] = useState(100);
+  const [rotation, setRotation] = useState(0);
+  const [docxHtml, setDocxHtml] = useState(null);
+  const [grid, setGrid] = useState(null);
+  const [gridError, setGridError] = useState('');
+  const [converting, setConverting] = useState(false);
+
+  const type = attachment ? typeFromMime(attachment.mimeType || attachment.type) : 'unknown';
+
+  useEffect(() => {
+    setZoom(100);
+    setRotation(0);
+    setDocxHtml(null);
+    setGrid(null);
+    setGridError('');
+  }, [attachment?.id]);
+
+  const renderDocx = useCallback(async () => {
+    if (!attachment?.fileUrl || type !== 'docx') return;
+    setConverting(true);
+    try {
+      const url = attachmentUrl(attachment.fileUrl);
+      const res = await fetch(url, { credentials: 'include' });
+      if (!res.ok) throw new Error('Could not fetch document');
+      const buf = await res.arrayBuffer();
+      const [mammoth, DOMPurify] = await Promise.all([import('mammoth'), import('dompurify')]);
+      const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+      setDocxHtml(DOMPurify.default.sanitize(result.value));
+    } catch (err) {
+      setGridError('DOCX conversion failed: ' + err.message);
+    } finally {
+      setConverting(false);
+    }
+  }, [attachment, type]);
+
+  const renderSpreadsheet = useCallback(async () => {
+    if (!attachment?.fileUrl) return;
+    if (type !== 'xlsx' && type !== 'csv') return;
+    setConverting(true);
+    try {
+      const url = attachmentUrl(attachment.fileUrl);
+      const res = await fetch(url, { credentials: 'include' });
+      if (!res.ok) throw new Error('Could not fetch spreadsheet');
+      const buf = await res.arrayBuffer();
+      const mod = await import('xlsx');
+      const XLSX = mod.default || mod;
+      const wb = XLSX.read(buf, { type: 'array' });
+      const sheetName = wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      setGrid({ sheets: wb.SheetNames, rows });
+    } catch (err) {
+      setGridError('Spreadsheet preview failed: ' + err.message);
+    } finally {
+      setConverting(false);
+    }
+  }, [attachment, type]);
+
+  useEffect(() => {
+    if (type === 'docx') renderDocx();
+    if (type === 'xlsx' || type === 'csv') renderSpreadsheet();
+  }, [type, renderDocx, renderSpreadsheet, attachment?.id]);
+
+  if (!attachment) {
+    return (
+      <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
+        No attachment selected for preview.
+      </div>
+    );
+  }
+
+  const url = attachmentUrl(attachment.fileUrl);
+  const zoomStyle = type === 'image' ? { transformOrigin: 'center center' } : { transformOrigin: 'top center' };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'transparent', overflow: 'hidden' }}>
+      <div className="preview-toolbar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0 }}>
+          {type === 'pdf' && <FileText size={17} style={{ color: '#ef4444', flexShrink: 0 }} />}
+          {type === 'docx' && <FileText size={17} style={{ color: '#2563eb', flexShrink: 0 }} />}
+          {(type === 'xlsx' || type === 'csv') && <Table size={17} style={{ color: '#10b981', flexShrink: 0 }} />}
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachment.filename}</div>
+            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{formatBytes(attachment.sizeBytes)} · {type.toUpperCase()}</div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <button onClick={() => setZoom((z) => Math.max(z - 25, 50))} className="btn btn-secondary btn-sm" aria-label="Zoom out"><ZoomOut size={14} /></button>
+          <span style={{ fontSize: '0.78rem', fontFamily: 'monospace', minWidth: 42, textAlign: 'center', fontWeight: 700 }}>{zoom}%</span>
+          <button onClick={() => setZoom((z) => Math.min(z + 25, 200))} className="btn btn-secondary btn-sm" aria-label="Zoom in"><ZoomIn size={14} /></button>
+          <button onClick={() => setRotation((r) => (r + 90) % 360)} className="btn btn-secondary btn-sm" aria-label="Rotate"><RotateCw size={14} /></button>
+          {url && (
+            <a href={url} download={attachment.filename} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm" aria-label="Download">
+              <Download size={14} />
+            </a>
+          )}
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflow: 'auto', padding: type === 'pdf' ? 0 : '1.25rem', display: 'flex', justifyContent: 'center', alignItems: type === 'image' ? 'center' : 'flex-start' }}>
+        {type === 'pdf' && (
+          url ? (
+            <iframe
+              src={url}
+              title={attachment.filename}
+              style={{ width: '100%', height: '100%', border: 'none', transform: `scale(${zoom / 100}) rotate(${rotation}deg)`, ...zoomStyle, transition: 'transform 0.2s ease' }}
+            />
+          ) : (
+            <div style={{ padding: '2rem', color: '#64748b' }}>No preview available.</div>
+          )
+        )}
+
+        {type === 'docx' && (
+          <div style={{ width: '100%', maxWidth: 800, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 10, boxShadow: 'var(--shadow-lg)', padding: '2rem', minHeight: 480, transform: `scale(${zoom / 100}) rotate(${rotation}deg)`, ...zoomStyle, transition: 'transform 0.2s ease' }}>
+            {converting && <div style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 8 }}><Loader2 size={16} className="spin" /> Converting document...</div>}
+            {docxHtml && <div className="docx-container" dangerouslySetInnerHTML={{ __html: docxHtml }} style={{ fontSize: '0.9rem', lineHeight: 1.6 }} />}
+            {gridError && <div style={{ color: '#b91c1c' }}>{gridError}</div>}
+          </div>
+        )}
+
+        {(type === 'xlsx' || type === 'csv') && (
+          <div style={{ width: '100%', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 10, boxShadow: 'var(--shadow-md)', overflow: 'hidden', transform: `scale(${zoom / 100})`, ...zoomStyle, transition: 'transform 0.2s ease' }}>
+            {converting && <div style={{ color: '#64748b', padding: '1rem' }}><Loader2 size={16} className="spin" /> Parsing spreadsheet...</div>}
+            {gridError && <div style={{ color: '#b91c1c', padding: '1rem' }}>{gridError}</div>}
+            {grid && (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                  <thead>
+                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
+                      {grid.rows[0]?.map((h, i) => (
+                        <th key={i} style={{ padding: '0.6rem 1rem', textAlign: 'left', fontWeight: 700, color: '#1e3a8a', borderRight: '1px solid #cbd5e1' }}>{h ?? ''}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {grid.rows.slice(1).map((row, ri) => (
+                      <tr key={ri} style={{ borderBottom: '1px solid #e2e8f0', background: ri % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                        {row.map((cell, ci) => (
+                          <td key={ci} style={{ padding: '0.55rem 1rem', borderRight: '1px solid #e2e8f0' }}>{cell ?? ''}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {grid.rows.length === 0 && <div style={{ padding: '1rem', color: '#64748b' }}>Empty sheet.</div>}
+              </div>
+            )}
+          </div>
+        )}
+
+        {type === 'image' && url && (
+          <img
+            src={url}
+            alt={attachment.filename}
+            style={{ maxWidth: '100%', maxHeight: '70vh', borderRadius: 10, boxShadow: 'var(--shadow-lg)', border: '1px solid #cbd5e1', objectFit: 'contain', transform: `scale(${zoom / 100}) rotate(${rotation}deg)`, ...zoomStyle, transition: 'transform 0.2s ease' }}
+          />
+        )}
+
+        {type === 'other' && (
+          <div style={{ padding: '2rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <AlertTriangle size={16} /> This file type cannot be previewed inline. Use the download button.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

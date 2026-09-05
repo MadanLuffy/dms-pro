@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Production schema. Use:
+//   npx prisma db push --schema=prisma/schema.postgresql.prisma
+//   npx prisma generate --schema=prisma/schema.postgresql.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String           @id @default(uuid())
+  email        String           @unique
+  name         String
+  passwordHash String
+  role         String           @default("STAFF")
+  deptId       String
+  department   Department       @relation(fields: [deptId], references: [id])
+  files        SubjectFile[]    @relation("FileCreator")
+  assigned     SubjectFile[]    @relation("AssignedOfficer")
+  notes        Note[]
+  approvals    ApprovalMatrix[]
+  auditLogs    AuditLog[]
+  createdAt    DateTime         @default(now())
+
+  @@index([deptId])
+  @@index([role])
+}
+
+model Department {
+  id       String            @id
+  name     String
+  users    User[]
+  targets  SubjectFileDept[]
+  approval ApprovalMatrix[]
+}
+
+model SubjectFile {
+  id                String            @id @default(uuid())
+  refNo             String            @unique
+  subject           String
+  priority          String            @default("NORMAL")
+  secrecy           String            @default("INTERNAL")
+  status            String            @default("DEPT_HEAD_REVIEW")
+  creatorId         String
+  creator           User              @relation("FileCreator", fields: [creatorId], references: [id])
+  assignedOfficerId String?
+  assignedOfficer   User?             @relation("AssignedOfficer", fields: [assignedOfficerId], references: [id])
+  notes             Note[]
+  attachments       Attachment[]
+  targetDepts       SubjectFileDept[]
+  approvalMatrix    ApprovalMatrix[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([creatorId])
+  @@index([assignedOfficerId])
+  @@index([status])
+  @@index([updatedAt])
+}
+
+model SubjectFileDept {
+  id         String      @id @default(uuid())
+  fileId     String
+  file       SubjectFile @relation(fields: [fileId], references: [id])
+  deptId     String
+  department Department  @relation(fields: [deptId], references: [id])
+
+  @@unique([fileId, deptId])
+  @@index([fileId])
+  @@index([deptId])
+}
+
+model Note {
+  id          String       @id @default(uuid())
+  version     Int
+  fileId      String
+  file        SubjectFile  @relation(fields: [fileId], references: [id])
+  authorId    String
+  author      User         @relation(fields: [authorId], references: [id])
+  parentId    String?
+  parent      Note?        @relation("NoteReplies", fields: [parentId], references: [id])
+  replies     Note[]       @relation("NoteReplies")
+  sentTo      String
+  content     String
+  order       Int
+  attachments Attachment[]
+  createdAt   DateTime     @default(now())
+
+  @@index([fileId])
+  @@index([parentId])
+  @@index([authorId])
+}
+
+model Attachment {
+  id         String      @id @default(uuid())
+  fileId     String
+  file       SubjectFile @relation(fields: [fileId], references: [id])
+  noteId     String?
+  note       Note?       @relation(fields: [noteId], references: [id])
+  filename   String
+  fileUrl    String
+  mimeType   String
+  sizeBytes  Int
+  uploadedAt DateTime    @default(now())
+
+  @@index([fileId])
+  @@index([noteId])
+}
+
+model ApprovalMatrix {
+  id         String      @id @default(uuid())
+  fileId     String
+  file       SubjectFile @relation(fields: [fileId], references: [id])
+  deptId     String
+  department Department  @relation(fields: [deptId], references: [id])
+  status     String      @default("PENDING")
+  reviewedBy String?
+  reviewer   User?       @relation(fields: [reviewedBy], references: [id])
+  comments   String?
+  gate       String      @default("DEPT")
+  timestamp  DateTime?
+
+  @@index([fileId])
+  @@index([fileId, status])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  userName  String
+  action    String
+  details   String
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([action])
+}
