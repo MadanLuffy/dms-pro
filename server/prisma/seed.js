@@ -12,8 +12,9 @@ async function main() {
 
   if (isProd && allowDemo) {
     console.log('[seed] WARNING: ALLOW_DEMO_SEED=true in production. This is for isolated demo environments only.');
-    if (!forceClear) {
-      console.log('[seed] Refusing to wipe existing data. Set SEED_FORCE_CLEAR=true only for a disposable demo database.');
+    const existingUsers = await prisma.user.count();
+    if (existingUsers > 0 && !forceClear) {
+      console.log('[seed] Database already has users. Refusing to wipe. Set SEED_FORCE_CLEAR=true only for a disposable demo database.');
       return;
     }
   }
