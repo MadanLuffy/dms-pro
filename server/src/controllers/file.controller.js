@@ -5,6 +5,7 @@ import { emitToUser } from '../sockets/index.js';
 import { emitToFileAudience, emitToFileParticipants } from '../utils/fileAudience.js';
 import { contains, parsePagination } from '../utils/query.js';
 import { unlinkUploadByUrl } from '../utils/diskFile.js';
+import { canDeleteSubjectFile } from '../utils/filePolicy.js';
 import { parseIdList } from '../utils/confirmDepts.js';
 import {
   FILE_STATUS,
@@ -311,8 +312,11 @@ export async function deleteFile(req, res, next) {
       include: { targetDepts: true },
     });
     if (!existing) return res.status(404).json({ error: 'File not found' });
-    if (req.user.role === 'SUPERADMIN' || existing.creatorId !== req.user.id) {
-      return res.status(403).json({ error: 'Forbidden: only the file creator can delete this file' });
+    if (!canDeleteSubjectFile(req.user, existing)) {
+      if (existing.status === FILE_STATUS.APPROVED) {
+        return res.status(403).json({ error: 'Approved files cannot be deleted' });
+      }
+      return res.status(403).json({ error: 'Only the person who created this file can delete it' });
     }
 
     const attachments = await prisma.attachment.findMany({ where: { fileId: existing.id } });

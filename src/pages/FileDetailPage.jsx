@@ -16,6 +16,7 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import { getInitials, formatDate } from '../utils/format';
 import { wrapLocalFiles, toUploadFiles, removePendingFile } from '../utils/pendingFiles';
 import { areAttachmentsLocked, canDeleteAttachment, noteAuthorForAttachment } from '../utils/attachments';
+import { canDeleteSubjectFile } from '../utils/files';
 
 function nestNoteTree(notes = []) {
   if (!notes.length) return [];
@@ -184,6 +185,7 @@ export default function FileDetailPage() {
   const isCreator = file?.creator?.id === user?.id;
   const canResubmit = isCreator && file?.status === 'RETURNED';
   const canManageFile = isCreator;
+  const canDeleteFile = canDeleteSubjectFile(user, file);
   const attachmentsLocked = areAttachmentsLocked(file);
   const higherOfficers = users.filter((u) => ['DEPT_HEAD', 'CEO'].includes(u.role));
 
@@ -433,6 +435,11 @@ export default function FileDetailPage() {
             {exportBusy === 'notes' ? <Loader2 size={15} className="spin" /> : <FileText size={15} />}
             Export Notes PDF
           </button>
+          {canDeleteFile && (
+            <button type="button" onClick={() => setDeleteOpen(true)} className="btn btn-danger btn-sm">
+              <Trash2 size={15} /> Delete File
+            </button>
+          )}
           {canManageFile && (
             <div style={{ position: 'relative' }}>
               <button type="button" className="btn btn-secondary btn-sm" onClick={() => setMenuOpen((o) => !o)} aria-label="File actions">
@@ -442,9 +449,6 @@ export default function FileDetailPage() {
                 <div className="profile-menu" style={{ width: 210 }}>
                   <button type="button" className="btn btn-ghost btn-sm" style={{ width: '100%', justifyContent: 'flex-start' }} onClick={() => { setMenuOpen(false); setReassignId(file.assignedOfficer?.id || ''); setReassignOpen(true); }}>
                     <UserCog size={14} /> Reassign Officer
-                  </button>
-                  <button type="button" className="btn btn-ghost btn-sm" style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--danger-red)' }} onClick={() => { setMenuOpen(false); setDeleteOpen(true); }}>
-                    <Trash2 size={14} /> Delete File
                   </button>
                 </div>
               )}
@@ -857,7 +861,7 @@ export default function FileDetailPage() {
         }
       >
         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-          This will permanently remove <strong>{file.refNo}</strong> and its notes, attachments, and approval history. This cannot be undone.
+          This will permanently remove <strong>{file.refNo}</strong> and its notes and attachments. Approved files cannot be deleted. This cannot be undone.
         </p>
       </Modal>
     </div>
