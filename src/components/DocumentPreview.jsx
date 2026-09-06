@@ -79,7 +79,7 @@ export default function DocumentPreview({ attachment }) {
 
   if (!attachment) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
+      <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-light)', fontSize: '0.9rem' }}>
         No attachment selected for preview.
       </div>
     );
@@ -92,12 +92,12 @@ export default function DocumentPreview({ attachment }) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'transparent', overflow: 'hidden' }}>
       <div className="preview-toolbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0 }}>
-          {type === 'pdf' && <FileText size={17} style={{ color: '#ef4444', flexShrink: 0 }} />}
-          {type === 'docx' && <FileText size={17} style={{ color: '#2563eb', flexShrink: 0 }} />}
-          {(type === 'xlsx' || type === 'csv') && <Table size={17} style={{ color: '#10b981', flexShrink: 0 }} />}
+          {type === 'pdf' && <FileText size={17} style={{ color: 'var(--danger)', flexShrink: 0 }} />}
+          {type === 'docx' && <FileText size={17} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
+          {(type === 'xlsx' || type === 'csv') && <Table size={17} style={{ color: 'var(--success)', flexShrink: 0 }} />}
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachment.filename}</div>
-            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{formatBytes(attachment.sizeBytes)} · {type.toUpperCase()}</div>
+            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachment.filename}</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>{formatBytes(attachment.sizeBytes)} · {type.toUpperCase()}</div>
           </div>
         </div>
 
@@ -123,22 +123,22 @@ export default function DocumentPreview({ attachment }) {
               style={{ width: '100%', height: '100%', border: 'none', transform: `scale(${zoom / 100}) rotate(${rotation}deg)`, ...zoomStyle, transition: 'transform 0.2s ease' }}
             />
           ) : (
-            <div style={{ padding: '2rem', color: '#64748b' }}>No preview available.</div>
+            <div style={{ padding: '2rem', color: 'var(--text-light)' }}>No preview available.</div>
           )
         )}
 
         {type === 'docx' && (
           <div style={{ width: '100%', maxWidth: 800, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 10, boxShadow: 'var(--shadow-lg)', padding: '2rem', minHeight: 480, transform: `scale(${zoom / 100}) rotate(${rotation}deg)`, ...zoomStyle, transition: 'transform 0.2s ease' }}>
-            {converting && <div style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 8 }}><Loader2 size={16} className="spin" /> Converting document...</div>}
+            {converting && <div style={{ color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: 8 }}><Loader2 size={16} className="spin" /> Converting document...</div>}
             {docxHtml && <div className="docx-container" dangerouslySetInnerHTML={{ __html: docxHtml }} style={{ fontSize: '0.9rem', lineHeight: 1.6 }} />}
-            {gridError && <div style={{ color: '#b91c1c' }}>{gridError}</div>}
+            {gridError && <div style={{ color: 'var(--danger-deep)' }}>{gridError}</div>}
           </div>
         )}
 
         {(type === 'xlsx' || type === 'csv') && (
           <div style={{ width: '100%', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 10, boxShadow: 'var(--shadow-md)', overflow: 'hidden', transform: `scale(${zoom / 100})`, ...zoomStyle, transition: 'transform 0.2s ease' }}>
-            {converting && <div style={{ color: '#64748b', padding: '1rem' }}><Loader2 size={16} className="spin" /> Parsing spreadsheet...</div>}
-            {gridError && <div style={{ color: '#b91c1c', padding: '1rem' }}>{gridError}</div>}
+            {converting && <div style={{ color: 'var(--text-light)', padding: '1rem' }}><Loader2 size={16} className="spin" /> Parsing spreadsheet...</div>}
+            {gridError && <div style={{ color: 'var(--danger-deep)', padding: '1rem' }}>{gridError}</div>}
             {grid && (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
@@ -159,7 +159,7 @@ export default function DocumentPreview({ attachment }) {
                     ))}
                   </tbody>
                 </table>
-                {grid.rows.length === 0 && <div style={{ padding: '1rem', color: '#64748b' }}>Empty sheet.</div>}
+                {grid.rows.length === 0 && <div style={{ padding: '1rem', color: 'var(--text-light)' }}>Empty sheet.</div>}
               </div>
             )}
           </div>
@@ -174,7 +174,7 @@ export default function DocumentPreview({ attachment }) {
         )}
 
         {type === 'other' && (
-          <div style={{ padding: '2rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ padding: '2rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: 8 }}>
             <AlertTriangle size={16} /> This file type cannot be previewed inline. Use the download button.
           </div>
         )}

@@ -30,8 +30,8 @@ export default class ErrorBoundary extends Component {
           }}
         >
           <div style={{ fontSize: 40 }}>⚠️</div>
-          <div style={{ fontWeight: 600, fontSize: 16, color: '#0f172a' }}>This section failed to load</div>
-          <div style={{ fontSize: 14, color: '#64748b', maxWidth: 420 }}>{this.state.message}</div>
+          <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-main)' }}>This section failed to load</div>
+          <div style={{ fontSize: 13, color: 'var(--text-light)', maxWidth: 420 }}>{this.state.message}</div>
           <button
             className="btn btn-primary"
             onClick={() => this.setState({ hasError: false, message: '' })}

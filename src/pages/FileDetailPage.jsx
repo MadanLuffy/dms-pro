@@ -35,18 +35,18 @@ function countNotes(notes = []) {
 function ReplyList({ replies, incomingAttachments, setActiveAttIndex, onReply }) {
   if (!replies?.length) return null;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginLeft: '1.4rem', paddingLeft: '1.1rem', borderLeft: '3px solid #dbeafe' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginLeft: '1.4rem', paddingLeft: '1.1rem', borderLeft: '3px solid var(--border-accent)' }}>
       {replies.map((r) => (
-        <div key={r.id} style={{ background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0', padding: '0.8rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div key={r.id} style={{ background: 'var(--bg-subtle)', borderRadius: 10, border: '1px solid var(--border-color)', padding: '0.8rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <div className="avatar avatar-sm">{getInitials(r.author?.name)}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
-              <strong style={{ fontSize: '0.85rem' }}>{r.author?.name}</strong>
-              <span className="badge badge-submitted" style={{ fontSize: '0.65rem' }}>REPLY</span>
+              <strong style={{ fontSize: '0.82rem' }}>{r.author?.name}</strong>
+              <span className="badge badge-submitted" style={{ fontSize: '0.62rem' }}>REPLY</span>
             </div>
-            <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem', marginLeft: 'auto' }}><Clock size={11} /> {formatDate(r.createdAt)}</span>
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.25rem', marginLeft: 'auto' }}><Clock size={11} /> {formatDate(r.createdAt)}</span>
           </div>
-          <div style={{ fontSize: '0.88rem', color: '#1e293b', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>{r.content}</div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>{r.content}</div>
           {(r.attachments || []).length > 0 && (
             <div className="chip-group">
               {r.attachments.map((att) => (
@@ -349,7 +349,7 @@ export default function FileDetailPage() {
               <ChevronRight size={13} />
               <span className="ref-no">{file.refNo}</span>
             </div>
-            <h1 style={{ fontSize: '1.28rem', fontWeight: 800, margin: 0 }}>{file.subject}</h1>
+            <h1 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>{file.subject}</h1>
           </div>
         </div>
 
@@ -394,7 +394,7 @@ export default function FileDetailPage() {
       <div className="file-detail-grid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
           <div className="surface-card" style={{ padding: '1.25rem 1.4rem' }}>
-            <h2 style={{ fontSize: '1.02rem', fontWeight: 800, marginBottom: '0.85rem' }}>File Meta</h2>
+            <h2 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '0.85rem' }}>File Meta</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem 1rem', fontSize: '0.85rem' }}>
               <div><span style={{ color: 'var(--text-light)' }}>Secrecy:</span> <span className={`secrecy-pill secrecy-${(file.secrecy || 'internal').toLowerCase()}`}>{file.secrecy}</span></div>
               <div><span style={{ color: 'var(--text-light)' }}>Priority:</span> <span className={`priority-tag priority-${(file.priority || 'normal').toLowerCase()}`}>{file.priority}</span></div>
@@ -407,10 +407,10 @@ export default function FileDetailPage() {
             <div className="signoff-banner">
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Shield size={18} style={{ color: '#15803d' }} />
-                  <strong style={{ fontSize: '0.95rem', color: '#15803d' }}>Sign-Off Pending</strong>
+                  <Shield size={17} style={{ color: 'var(--success)' }} />
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--success-deep)' }}>Sign-Off Pending</strong>
                 </div>
-                <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: '0.15rem' }}>Sign as {user.name} ({user.role})</div>
+                <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>Sign as {user.name} ({user.role})</div>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button type="button" onClick={() => setCommentModal(canApproveCeo ? 'CEO_APPROVE' : 'APPROVE')} className="btn btn-success">
@@ -430,9 +430,9 @@ export default function FileDetailPage() {
           )}
 
           <div className="surface-card" style={{ padding: '1.25rem 1.4rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.85rem', marginBottom: '1rem', gap: '0.6rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.85rem', marginBottom: '1rem', gap: '0.6rem', flexWrap: 'wrap' }}>
               <div>
-                <h2 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0 }}>Official Note Sheet Stream</h2>
+                <h2 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0 }}>Official Note Sheet Stream</h2>
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', margin: 0 }}>Versioned minute trail</p>
               </div>
               <span className="badge badge-submitted">{countNotes(rootNotes)} Minutes</span>
@@ -442,7 +442,7 @@ export default function FileDetailPage() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {rootNotes.length === 0 && <p style={{ fontSize: '0.85rem', color: '#94a3b8', textAlign: 'center', padding: '0.75rem 0' }}>No notes yet. Click <strong>Write Note</strong> to add your first minute.</p>}
+              {rootNotes.length === 0 && <p style={{ fontSize: '0.82rem', color: 'var(--text-light)', textAlign: 'center', padding: '0.75rem 0' }}>No notes yet. Click <strong>Write Note</strong> to add your first minute.</p>}
               {rootNotes.map((note, idx) => {
                 const isLatest = idx === rootNotes.length - 1;
                 const noteAtts = note.attachments || [];
@@ -455,7 +455,7 @@ export default function FileDetailPage() {
                     onClick={() => navigate(`/files/${id}/notes/${note.id}`)}
                     onMouseEnter={() => setHoveredNote(note.id)}
                     onMouseLeave={() => setHoveredNote(null)}
-                    style={{ borderColor: hoveredNote === note.id ? '#2563eb' : undefined }}
+                    style={{ borderColor: hoveredNote === note.id ? 'var(--primary)' : undefined }}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -468,12 +468,12 @@ export default function FileDetailPage() {
                           {note.sentTo && <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Sent To: <strong style={{ color: 'var(--primary-deep)' }}>{note.sentTo}</strong></div>}
                         </div>
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         <Clock size={12} /> {formatDate(note.createdAt)}
                       </div>
                     </div>
 
-                    <div style={{ fontSize: '0.9rem', color: '#1e293b', lineHeight: 1.6, whiteSpace: 'pre-wrap', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: 10 }}>{note.content}</div>
+                    <div style={{ fontSize: '0.86rem', color: 'var(--text-main)', lineHeight: 1.6, whiteSpace: 'pre-wrap', background: 'var(--bg-subtle)', padding: '0.75rem 1rem', borderRadius: 10 }}>{note.content}</div>
 
                     {noteAtts.length > 0 && (
                       <div className="chip-group">
@@ -485,7 +485,7 @@ export default function FileDetailPage() {
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '0.6rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', borderTop: '1px solid var(--border-color)', paddingTop: '0.6rem' }}>
                       {noteReplies.length > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginRight: 'auto' }}>{noteReplies.length} repl{noteReplies.length === 1 ? 'y' : 'ies'}</span>}
                       <button type="button" onClick={(e) => { e.stopPropagation(); navigate(`/files/${id}/notes/${note.id}`); }} className="btn btn-ghost btn-sm">
                         Open Thread <ChevronRight size={13} />
@@ -511,10 +511,10 @@ export default function FileDetailPage() {
         </div>
 
         <div className="surface-card" style={{ padding: '1.15rem', minHeight: 700 }}>
-          <div style={{ marginBottom: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.85rem' }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0 }}>Document Canvas ({incomingAttachments.length} files)</h2>
+          <div style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.85rem' }}>
+            <h2 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0 }}>Document Canvas ({incomingAttachments.length} files)</h2>
             <div className="chip-group" style={{ marginTop: '0.75rem' }}>
-              {incomingAttachments.length === 0 && <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>No documents attached yet.</span>}
+              {incomingAttachments.length === 0 && <span style={{ fontSize: '0.78rem', color: 'var(--text-light)' }}>No documents attached yet.</span>}
               {incomingAttachments.map((att, idx) => (
                 <button key={att.id} type="button" className={`chip ${activeAttIndex === idx ? 'is-active' : ''}`} onClick={() => setActiveAttIndex(idx)}>
                   <Paperclip size={13} />
@@ -530,11 +530,11 @@ export default function FileDetailPage() {
             </ErrorBoundary>
           </div>
 
-          <div style={{ marginTop: '1rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.85rem' }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0 }}>Approval Matrix ({file.approvalMatrix.length})</h2>
+          <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.85rem' }}>
+            <h2 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0 }}>Approval Matrix ({file.approvalMatrix.length})</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
               {file.approvalMatrix.map((a) => (
-                <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', padding: '0.55rem 0.8rem', borderRadius: 10, border: '1px solid #e2e8f0', background: a.status === 'APPROVED' ? '#f0fdf4' : a.status === 'RETURNED' ? '#fef2f2' : '#f8fafc' }}>
+                <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', padding: '0.55rem 0.8rem', borderRadius: 10, border: '1px solid var(--border-color)', background: a.status === 'APPROVED' ? 'var(--success-light)' : a.status === 'RETURNED' ? 'var(--danger-light)' : 'var(--bg-subtle)' }}>
                   <div>
                     <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>
                       {a.gate === 'CEO' ? 'CEO Gate' : a.departmentName}
@@ -593,8 +593,8 @@ export default function FileDetailPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               {newNoteAttachments.map((a) => (
                 <div key={a.id} className="pending-file">
-                  <span style={{ fontWeight: 600, color: '#1e40af' }}>{a.name}</span>
-                  <button type="button" onClick={() => handleRemoveNewAtt(a.id)} aria-label={`Remove ${a.name}`} style={{ border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--primary-deep)' }}>{a.name}</span>
+                  <button type="button" onClick={() => handleRemoveNewAtt(a.id)} aria-label={`Remove ${a.name}`} style={{ border: 'none', background: 'transparent', color: 'var(--danger)', cursor: 'pointer' }}>
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -602,7 +602,7 @@ export default function FileDetailPage() {
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.85rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.85rem' }}>
             <input
               ref={fileInputRef}
               type="file"
@@ -650,8 +650,8 @@ export default function FileDetailPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               {replyAttachments.map((a) => (
                 <div key={a.id} className="pending-file">
-                  <span style={{ fontWeight: 600, color: '#1e40af' }}>{a.name}</span>
-                  <button type="button" onClick={() => handleRemoveReplyAtt(a.id)} aria-label={`Remove ${a.name}`} style={{ border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--primary-deep)' }}>{a.name}</span>
+                  <button type="button" onClick={() => handleRemoveReplyAtt(a.id)} aria-label={`Remove ${a.name}`} style={{ border: 'none', background: 'transparent', color: 'var(--danger)', cursor: 'pointer' }}>
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -659,7 +659,7 @@ export default function FileDetailPage() {
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.85rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.85rem' }}>
             <input
               ref={replyFileInputRef}
               type="file"

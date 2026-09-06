@@ -28,10 +28,10 @@ export function ToastProvider({ children }) {
   );
 
   const ICONS = {
-    success: <CheckCircle2 size={18} color="#16a34a" />,
-    notification: <BellRing size={18} color="#2563eb" />,
-    info: <Info size={18} color="#2563eb" />,
-    error: <AlertTriangle size={18} color="#dc2626" />,
+    success: <CheckCircle2 size={17} color="var(--success)" />,
+    notification: <BellRing size={17} color="var(--primary)" />,
+    info: <Info size={17} color="var(--primary)" />,
+    error: <AlertTriangle size={17} color="var(--danger)" />,
   };
 
   return (
@@ -42,34 +42,21 @@ export function ToastProvider({ children }) {
         role="status"
         style={{
           position: 'fixed',
-          top: 68,
+          top: 64,
           right: 16,
           zIndex: 9999,
           display: 'flex',
           flexDirection: 'column',
           gap: 8,
-          maxWidth: 360,
+          maxWidth: 340,
         }}
       >
         {toasts.map((t) => (
           <div
             key={t.id}
+            className="dms-toast"
             onClick={() => remove(t.id)}
             role="button"
-            style={{
-              background: 'rgba(255,255,255,0.92)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(148,163,184,0.35)',
-              borderRadius: 12,
-              boxShadow: '0 12px 28px rgba(15,23,42,0.12)',
-              padding: '10px 12px',
-              display: 'flex',
-              gap: 10,
-              alignItems: 'flex-start',
-              fontSize: 14,
-              color: '#0f172a',
-              cursor: 'pointer',
-            }}
           >
             <span style={{ marginTop: 1 }}>{ICONS[t.type] || ICONS.info}</span>
             <span>{t.message}</span>

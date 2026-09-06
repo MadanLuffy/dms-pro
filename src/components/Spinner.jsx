@@ -8,7 +8,7 @@ export default function Spinner({ label = 'Loading...' }) {
         justifyContent: 'center',
         gap: 12,
         padding: '3rem 1rem',
-        color: '#64748b',
+        color: 'var(--text-light)',
         fontSize: 14,
       }}
     >
@@ -16,8 +16,8 @@ export default function Spinner({ label = 'Loading...' }) {
         style={{
           width: 34,
           height: 34,
-          border: '3px solid #dbeafe',
-          borderTopColor: '#2563eb',
+          border: '3px solid var(--border-accent)',
+          borderTopColor: 'var(--primary)',
           borderRadius: '50%',
           animation: 'dms-spin 0.8s linear infinite',
         }}

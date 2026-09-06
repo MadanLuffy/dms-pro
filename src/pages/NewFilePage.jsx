@@ -84,7 +84,7 @@ export default function NewFilePage({ onClose }) {
       <div className="modal-content" style={{ maxWidth: 780, maxHeight: '92vh', padding: 0, overflow: 'hidden' }}>
         <div className="modal-hero">
           <div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>Create New Subject File</h3>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>Create New Subject File</h3>
             <p style={{ fontSize: '0.8rem', color: '#dbeafe', margin: '0.2rem 0 0 0' }}>Set routing, minute, and attachments in one step</p>
           </div>
           <button onClick={close} aria-label="Close" className="btn btn-secondary btn-sm" style={{ padding: '0.35rem', background: 'rgba(255,255,255,0.18)', border: 'none', color: '#ffffff' }}>
@@ -171,8 +171,8 @@ export default function NewFilePage({ onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.65rem' }}>
                 {attachments.map((a) => (
                   <div key={a.id} className="pending-file">
-                    <span style={{ fontWeight: 600, color: '#1e40af' }}>{a.name}</span>
-                    <button type="button" aria-label={`Remove ${a.name}`} onClick={() => setAttachments((prev) => removePendingFile(prev, a.id))} style={{ border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--primary-deep)' }}>{a.name}</span>
+                    <button type="button" aria-label={`Remove ${a.name}`} onClick={() => setAttachments((prev) => removePendingFile(prev, a.id))} style={{ border: 'none', background: 'transparent', color: 'var(--danger)', cursor: 'pointer' }}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -181,7 +181,7 @@ export default function NewFilePage({ onClose }) {
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)' }}>
             <button type="button" onClick={close} className="btn btn-secondary">Cancel</button>
             <button type="submit" disabled={busy} className="btn btn-success">
               {busy ? <Loader2 size={16} className="spin" /> : <Send size={16} />}

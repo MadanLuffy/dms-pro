@@ -79,7 +79,7 @@ export default function AuditPage() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Shield size={22} style={{ color: 'var(--primary)' }} />
-            <h2 style={{ fontSize: '1.45rem', fontWeight: 700 }}>Administrative Audit & System Traceability</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Administrative Audit & System Traceability</h2>
           </div>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Immutable audit trail of all user actions and sign-offs.</p>
         </div>
@@ -90,7 +90,7 @@ export default function AuditPage() {
 
       <div className="glass-panel" style={{ padding: '0.9rem 1.1rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.85rem' }}>
         <div className="search-field" style={{ flex: '1 1 240px', maxWidth: 360 }}>
-          <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+          <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
           <input type="search" aria-label="Search audit logs" placeholder="Search user, file, details..." value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
         <select value={action} onChange={(e) => setAction(e.target.value)} aria-label="Filter by action" className="field-control" style={{ width: 'auto' }}>
@@ -122,7 +122,7 @@ export default function AuditPage() {
                 ) : (
                   logs.map((log) => (
                     <tr key={log.id} style={{ cursor: 'default' }}>
-                      <td style={{ fontSize: '0.78rem', color: '#475569', whiteSpace: 'nowrap' }}>
+                      <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                         <Clock size={12} style={{ display: 'inline', marginRight: 4 }} /> {formatDate(log.createdAt)}
                       </td>
                       <td style={{ fontWeight: 600 }}>{log.userName}</td>

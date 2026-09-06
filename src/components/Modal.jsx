@@ -32,15 +32,15 @@ export default function Modal({ open, onClose, title, children, footer, width = 
     >
       <div className="modal-content" style={{ maxWidth: width, padding: '0 0 1.25rem 0', overflowY: 'auto' }}>
         {title && (
-          <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(226,232,240,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: 0 }}>{title}</h3>
-            <button type="button" onClick={onClose} aria-label="Close dialog" className="btn btn-ghost btn-sm" style={{ padding: 4 }}>
-              <X size={20} />
+          <div style={{ padding: '0.85rem 1.4rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 800, margin: 0 }}>{title}</h3>
+            <button type="button" onClick={onClose} aria-label="Close dialog" className="btn btn-ghost btn-sm" style={{ padding: 3 }}>
+              <X size={18} />
             </button>
           </div>
         )}
-        <div style={{ padding: '1.25rem 1.5rem' }}>{children}</div>
-        {footer && <div style={{ padding: '0 1.5rem' }}>{footer}</div>}
+        <div style={{ padding: '1.1rem 1.4rem' }}>{children}</div>
+        {footer && <div style={{ padding: '0 1.4rem' }}>{footer}</div>}
       </div>
     </div>
   );

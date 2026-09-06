@@ -49,7 +49,7 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
     <div className="page" style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
       <div className="glass-panel" style={{ padding: '1rem 1.2rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#334155', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
             <Filter size={16} /> Filter Files
           </span>
           <select value={selectedDept} onChange={(e) => setSelectedDept(e.target.value)} aria-label="Filter by department" className="field-control" style={{ width: 'auto' }}>
@@ -117,7 +117,7 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
                           {file.createdAt ? ` · ${formatDate(file.createdAt)}` : ''}
                         </div>
                       </td>
-                      <td style={{ fontSize: '0.8rem', color: '#475569' }}>
+                      <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
                           {file.targetDepts.map((d) => (
                             <span key={d.id} className="badge badge-submitted" style={{ fontSize: '0.68rem' }}>{d.name}</span>

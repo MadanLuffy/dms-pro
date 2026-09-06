@@ -128,74 +128,74 @@ export default function NoteThreadPage() {
       <div key={node.id}>
         <div
           data-testid={depth === 0 ? 'thread-root' : 'thread-reply'}
-          style={{ background: depth === 0 ? '#ffffff' : '#f8fafc', borderRadius: 12, border: `1px solid ${depth === 0 ? '#bfdbfe' : '#e2e8f0'}`, boxShadow: depth === 0 ? '0 4px 14px rgba(37,99,235,0.06)' : 'none', padding: '1rem 1.1rem', display: 'flex', flexDirection: 'column', gap: '0.7rem' }}
+          style={{ background: depth === 0 ? 'var(--bg-surface)' : 'var(--bg-subtle)', borderRadius: 12, border: `1px solid ${depth === 0 ? 'var(--border-accent)' : 'var(--border-color)'}`, boxShadow: depth === 0 ? 'var(--shadow-sm)' : 'none', padding: '1rem 1.1rem', display: 'flex', flexDirection: 'column', gap: '0.7rem' }}
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
-              <div style={{ width: depth === 0 ? 36 : 30, height: depth === 0 ? 36 : 30, borderRadius: '50%', background: depth === 0 ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : '#334155', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.78rem', flexShrink: 0 }}>
+              <div style={{ width: depth === 0 ? 36 : 30, height: depth === 0 ? 36 : 30, borderRadius: '50%', background: depth === 0 ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : 'var(--bg-inset)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.78rem', flexShrink: 0 }}>
                 {getInitials(node.author?.name)}
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                   <strong style={{ fontSize: '0.9rem' }}>{node.author?.name}</strong>
                   {depth === 0 ? (
-                    <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#2563eb', background: '#eff6ff', padding: '0.1rem 0.4rem', borderRadius: 4 }}>v{node.version}</span>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--primary-deep)', background: 'var(--primary-light)', padding: '0.1rem 0.4rem', borderRadius: 4 }}>v{node.version}</span>
                   ) : (
-                    <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#2563eb', background: '#eff6ff', padding: '0.1rem 0.4rem', borderRadius: 4 }}>REPLY</span>
+                    <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--primary-deep)', background: 'var(--primary-light)', padding: '0.1rem 0.4rem', borderRadius: 4 }}>REPLY</span>
                   )}
                   {depth > 0 && node.parentId && (
-                    <span style={{ fontSize: '0.65rem', color: '#64748b', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-light)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                       <CornerDownRight size={11} /> replying to {nameById[node.parentId] ? `@${nameById[node.parentId]}` : 'thread'}
                     </span>
                   )}
                 </div>
-                {node.sentTo && <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Sent To: <strong style={{ color: '#1e40af' }}>{node.sentTo}</strong></div>}
+                {node.sentTo && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Sent To: <strong style={{ color: 'var(--primary-deep)' }}>{node.sentTo}</strong></div>}
               </div>
             </div>
-            <div style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
               <Clock size={11} /> {formatDate(node.createdAt)}
             </div>
           </div>
 
-          <div style={{ fontSize: '0.9rem', color: '#1e293b', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{node.content}</div>
+          <div style={{ fontSize: '0.86rem', color: 'var(--text-main)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{node.content}</div>
 
           {node.attachments?.length > 0 && (
             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
               {node.attachments.map((att) => (
-                <span key={att.id} style={{ fontSize: '0.72rem', padding: '0.25rem 0.6rem', borderRadius: 20, border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                <span key={att.id} style={{ fontSize: '0.7rem', padding: '0.22rem 0.6rem', borderRadius: 20, border: '1px solid var(--border-strong)', background: 'var(--bg-surface)', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
                   <Paperclip size={11} /> {att.filename}
                 </span>
               ))}
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '0.6rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', borderTop: '1px solid var(--border-color)', paddingTop: '0.6rem' }}>
             {childNodes.length > 0 && (
-              <span style={{ fontSize: '0.75rem', color: '#64748b', marginRight: 'auto' }}>{childNodes.length} repl{childNodes.length === 1 ? 'y' : 'ies'}</span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-light)', marginRight: 'auto' }}>{childNodes.length} repl{childNodes.length === 1 ? 'y' : 'ies'}</span>
             )}
-            <button type="button" onClick={() => openComposer(node)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 700, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', cursor: 'pointer', padding: '0.3rem 0.7rem', borderRadius: 16 }}>
+            <button type="button" onClick={() => openComposer(node)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.76rem', fontWeight: 700, color: 'var(--primary)', background: 'var(--primary-light)', border: '1px solid var(--border-accent)', cursor: 'pointer', padding: '0.28rem 0.7rem', borderRadius: 16 }}>
               <MessageSquareReply size={13} /> Reply
             </button>
           </div>
         </div>
 
         {replyingTo === node.id && (
-          <form onSubmit={handleSend} style={{ marginTop: '0.7rem', marginLeft: depth === 0 ? '1.6rem' : '1.2rem', paddingLeft: depth === 0 ? '1.2rem' : '0.9rem', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-            <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#1e40af' }}>Reply to {node.author?.name || 'this message'}</div>
-            <select id="threadReply-recipient" value={replyRecipient} onChange={(e) => setReplyRecipient(e.target.value)} style={{ width: '100%', padding: '0.6rem', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: '0.875rem', outline: 'none', background: '#ffffff' }}>
+          <form onSubmit={handleSend} style={{ marginTop: '0.7rem', marginLeft: depth === 0 ? '1.6rem' : '1.2rem', paddingLeft: depth === 0 ? '1.2rem' : '0.9rem', background: 'var(--primary-light)', border: '1px solid var(--border-accent)', borderRadius: 12, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+            <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--primary-deep)' }}>Reply to {node.author?.name || 'this message'}</div>
+            <select id="threadReply-recipient" value={replyRecipient} onChange={(e) => setReplyRecipient(e.target.value)} style={{ width: '100%', padding: '0.55rem', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: '0.85rem', outline: 'none', background: 'var(--bg-surface)' }}>
               <option value="">— Select recipient —</option>
               {users.map((u) => (
                 <option key={u.id} value={`${u.name} (${roleLabel(u.role)})`}>{u.name} ({roleLabel(u.role)} - {u.departmentName || u.deptId})</option>
               ))}
             </select>
-            <textarea id="threadReply-text" value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={3} placeholder="Type your reply..." style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: '0.875rem', outline: 'none', resize: 'vertical', fontFamily: 'inherit', background: '#ffffff' }} />
+            <textarea id="threadReply-text" value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={3} placeholder="Type your reply..." style={{ width: '100%', padding: '0.6rem', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: '0.85rem', outline: 'none', resize: 'vertical', fontFamily: 'inherit', background: 'var(--bg-surface)' }} />
             <input id="threadReply-file" key={fileInputKey} type="file" multiple onChange={addFiles} style={{ fontSize: '0.78rem' }} />
             {replyAttachments.length > 0 && (
               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                 {replyAttachments.map((f, i) => (
-                  <span key={i} style={{ fontSize: '0.72rem', padding: '0.2rem 0.6rem', borderRadius: 20, border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <span key={i} style={{ fontSize: '0.7rem', padding: '0.2rem 0.6rem', borderRadius: 20, border: '1px solid var(--border-strong)', background: 'var(--bg-surface)', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                     <Paperclip size={11} /> {f.name}
-                    <button type="button" onClick={() => setReplyAttachments((prev) => prev.filter((_, idx) => idx !== i))} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, color: '#94a3b8' }}><X size={11} /></button>
+                    <button type="button" onClick={() => setReplyAttachments((prev) => prev.filter((_, idx) => idx !== i))} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, color: 'var(--text-light)' }}><X size={11} /></button>
                   </span>
                 ))}
               </div>
@@ -210,7 +210,7 @@ export default function NoteThreadPage() {
         )}
 
         {childNodes.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', marginLeft: depth === 0 ? '1.6rem' : '1.2rem', paddingLeft: depth === 0 ? '1.2rem' : '0.9rem', borderLeft: depth === 0 ? '3px solid #dbeafe' : '2px solid #e2e8f0', marginTop: '0.7rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', marginLeft: depth === 0 ? '1.6rem' : '1.2rem', paddingLeft: depth === 0 ? '1.2rem' : '0.9rem', borderLeft: depth === 0 ? '3px solid var(--border-accent)' : '2px solid var(--border-color)', marginTop: '0.7rem' }}>
             {childNodes.map((child) => renderNode(child, depth + 1))}
           </div>
         )}
@@ -227,8 +227,8 @@ export default function NoteThreadPage() {
       </button>
 
       {error && (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '1rem', borderRadius: 10, fontSize: '0.85rem' }}>
-          {error} — <a href={`/files/${id}`} style={{ color: '#1e40af' }}>go back to the file</a>
+        <div style={{ background: 'var(--danger-light)', border: '1px solid var(--danger)', color: 'var(--danger-deep)', padding: '1rem', borderRadius: 10, fontSize: '0.85rem' }}>
+          {error} — <a href={`/files/${id}`} style={{ color: 'var(--primary-deep)' }}>go back to the file</a>
         </div>
       )}
 

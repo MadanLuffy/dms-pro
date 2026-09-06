@@ -117,7 +117,7 @@ export default function AdminPage() {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Shield size={22} style={{ color: 'var(--primary)' }} />
-          <h1 style={{ fontSize: '1.45rem', fontWeight: 800, margin: 0 }}>Administration</h1>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Administration</h1>
         </div>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: 4 }}>
           Create departments and user accounts. File review and approval stay with department heads and the CEO.

@@ -4,6 +4,7 @@ import { FileText, Plus, Search, Shield, Folder, LogOut, ChevronDown, Settings }
 import { useAuth } from '../context/AuthContext';
 import { getInitials } from '../utils/format';
 import { homePath, isAdmin } from '../utils/home';
+import ThemeToggle from './ThemeToggle';
 
 export default function Header({ onOpenNewFile, searchQuery, setSearchQuery }) {
   const { user, logout } = useAuth();
@@ -40,32 +41,33 @@ export default function Header({ onOpenNewFile, searchQuery, setSearchQuery }) {
       <div className="header-inner">
         <div className="header-top">
           <button type="button" className="brand" onClick={() => navigate(homePath(user))}>
-            <span className="brand-mark"><Folder size={20} /></span>
+            <span className="brand-mark"><Folder size={18} /></span>
             <span>
-              <div style={{ fontSize: '1.28rem', fontWeight: 800, lineHeight: 1.2, fontFamily: 'var(--font-heading)', letterSpacing: '-0.02em' }}>
+              <div style={{ fontSize: '1rem', fontWeight: 800, lineHeight: 1.2, fontFamily: 'var(--font-heading)', letterSpacing: '-0.015em' }}>
                 DMS Pro <span className="brand-chip">{adminUser ? 'Admin Portal' : 'Department Portal'}</span>
               </div>
-              <p style={{ fontSize: '0.76rem', color: 'var(--text-light)' }}>
+              <p style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>
                 {user.departmentName || user.deptId}
               </p>
             </span>
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <ThemeToggle />
             <div className="profile-wrap" ref={menuRef}>
               <button type="button" className="profile-trigger" onClick={() => setMenuOpen((o) => !o)} aria-haspopup="menu" aria-expanded={menuOpen}>
                 <span className="avatar avatar-md">{getInitials(user.name)}</span>
                 <span style={{ textAlign: 'left' }}>
-                  <strong style={{ display: 'block', fontSize: '0.82rem' }}>{user.name}</strong>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>{user.role.replace(/_/g, ' ')}</span>
+                  <strong style={{ display: 'block', fontSize: '0.8rem' }}>{user.name}</strong>
+                  <span style={{ fontSize: '0.67rem', color: 'var(--text-light)' }}>{user.role.replace(/_/g, ' ')}</span>
                 </span>
-                <ChevronDown size={14} />
+                <ChevronDown size={13} />
               </button>
               {menuOpen && (
                 <div className="profile-menu" role="menu">
                   <div style={{ padding: '0.35rem 0.4rem 0.35rem' }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.88rem' }}>{user.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>{user.email}</div>
+                    <div style={{ fontWeight: 800, fontSize: '0.85rem' }}>{user.name}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-light)' }}>{user.email}</div>
                     <span className="badge badge-submitted" style={{ marginTop: 8 }}>{user.departmentName || user.deptId}</span>
                   </div>
                 </div>
@@ -107,7 +109,7 @@ export default function Header({ onOpenNewFile, searchQuery, setSearchQuery }) {
 
           {!adminUser && (
             <div className="search-field">
-              <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+              <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
               <input
                 type="search"
                 aria-label="Search files by reference number or subject"
