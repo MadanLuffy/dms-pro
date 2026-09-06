@@ -35,7 +35,7 @@ export default function NewFilePage({ onClose }) {
     setBusy(true);
     try {
       const { file } = await api.files.create({
-        subject: subject.trim(),
+        subject: subject.trim().toUpperCase(),
         assignedOfficerId: assignedOfficerId || null,
         initialNote: initialNote.trim(),
         attachments: toUploadFiles(attachments),
@@ -68,7 +68,7 @@ export default function NewFilePage({ onClose }) {
 
           <div>
             <label htmlFor="subject" className="field-label">Subject *</label>
-            <input id="subject" className="field-control" type="text" required placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} style={{ fontWeight: 600, fontSize: '0.95rem' }} />
+            <input id="subject" className="field-control" type="text" required placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value.toUpperCase())} style={{ fontWeight: 600, fontSize: '0.95rem' }} />
           </div>
 
           <div>

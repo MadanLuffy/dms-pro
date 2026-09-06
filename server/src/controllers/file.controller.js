@@ -120,6 +120,10 @@ export async function createFile(req, res, next) {
     if (!subject || typeof subject !== 'string') {
       return res.status(400).json({ error: 'Subject is required' });
     }
+    const subjectTitle = subject.trim().toUpperCase();
+    if (!subjectTitle) {
+      return res.status(400).json({ error: 'Subject is required' });
+    }
     const priority = PRIORITY.includes(rawPriority) ? rawPriority : 'NORMAL';
     const secrecy = SECRECY.includes(rawSecrecy) ? rawSecrecy : 'INTERNAL';
 
@@ -153,7 +157,7 @@ export async function createFile(req, res, next) {
     const file = await prisma.subjectFile.create({
       data: {
         refNo,
-        subject,
+        subject: subjectTitle,
         priority,
         secrecy,
         status: FILE_STATUS.DEPT_HEAD_REVIEW,
