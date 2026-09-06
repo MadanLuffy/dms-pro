@@ -3,51 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import { Send, User, X, Loader2, Paperclip, Trash2 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useToast } from '../components/Toast';
-import { useAuth } from '../context/AuthContext';
 import { wrapLocalFiles, toUploadFiles, removePendingFile } from '../utils/pendingFiles';
-
-const PRIORITIES = ['LOW', 'NORMAL', 'HIGH', 'URGENT'];
-const SECRECY_LEVELS = ['OPEN', 'INTERNAL', 'CONFIDENTIAL', 'SECRET'];
 
 export default function NewFilePage({ onClose }) {
   const navigate = useNavigate();
   const toast = useToast();
-  const { user } = useAuth();
   const [subject, setSubject] = useState('');
-  const [priority, setPriority] = useState('NORMAL');
-  const [secrecy, setSecrecy] = useState('INTERNAL');
   const [assignedOfficerId, setAssignedOfficerId] = useState('');
-  const [targetDeptIds, setTargetDeptIds] = useState([]);
   const [initialNote, setInitialNote] = useState('');
   const [attachments, setAttachments] = useState([]);
   const [users, setUsers] = useState([]);
-  const [departments, setDepartments] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     api.meta.users().then(({ users: u }) => setUsers(u || [])).catch(() => {});
-    api.meta.departments().then(({ departments: d }) => setDepartments(d || [])).catch(() => {});
   }, []);
 
-  useEffect(() => {
-    if (user?.deptId && targetDeptIds.length === 0) {
-      setTargetDeptIds([user.deptId]);
-    }
-  }, [user, targetDeptIds.length]);
-
   const higherOfficers = users.filter((u) => ['DEPT_HEAD', 'CEO'].includes(u.role));
-
-  const toggleDept = (id) => {
-    setTargetDeptIds((prev) => {
-      if (prev.includes(id)) {
-        if (prev.length === 1) return prev;
-        return prev.filter((d) => d !== id);
-      }
-      return [...prev, id];
-    });
-  };
 
   const close = () => (onClose ? onClose() : navigate('/files'));
 
@@ -62,10 +36,7 @@ export default function NewFilePage({ onClose }) {
     try {
       const { file } = await api.files.create({
         subject: subject.trim(),
-        priority,
-        secrecy,
         assignedOfficerId: assignedOfficerId || null,
-        targetDeptIds,
         initialNote: initialNote.trim(),
         attachments: toUploadFiles(attachments),
       });
@@ -81,11 +52,11 @@ export default function NewFilePage({ onClose }) {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: 780, maxHeight: '92vh', padding: 0, overflow: 'hidden' }}>
+      <div className="modal-content" style={{ maxWidth: 720, maxHeight: '92vh', padding: 0, overflow: 'hidden' }}>
         <div className="modal-hero">
           <div>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>Create New Subject File</h3>
-            <p style={{ fontSize: '0.8rem', color: '#dbeafe', margin: '0.2rem 0 0 0' }}>Set routing, minute, and attachments in one step</p>
+            <p style={{ fontSize: '0.8rem', color: '#dbeafe', margin: '0.2rem 0 0 0' }}>Start a file. Choose departments when you send a note for confirmation.</p>
           </div>
           <button onClick={close} aria-label="Close" className="btn btn-secondary btn-sm" style={{ padding: '0.35rem', background: 'rgba(255,255,255,0.18)', border: 'none', color: '#ffffff' }}>
             <X size={18} />
@@ -96,57 +67,25 @@ export default function NewFilePage({ onClose }) {
           {error && <div role="alert" className="alert alert-error">{error}</div>}
 
           <div>
-            <label htmlFor="subject" className="field-label">Subject Title Baseline *</label>
-            <input id="subject" className="field-control" type="text" required placeholder="e.g. Enterprise Cloud Server Infrastructure Upgrade & Procurement FY26" value={subject} onChange={(e) => setSubject(e.target.value)} style={{ fontWeight: 600, fontSize: '0.95rem' }} />
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: '0.35rem', display: 'block' }}>This title acts as the official baseline header for the file.</span>
-          </div>
-
-          <div className="form-grid-3" style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1fr', gap: '1rem' }}>
-            <div>
-              <label htmlFor="recipient" className="field-label">
-                <User size={15} style={{ display: 'inline', marginRight: 4, verticalAlign: '-2px', color: 'var(--primary)' }} /> Assign To
-              </label>
-              <select id="recipient" className="field-control" value={assignedOfficerId} onChange={(e) => setAssignedOfficerId(e.target.value)} style={{ fontWeight: 600 }}>
-                <option value="">— Not assigned —</option>
-                {higherOfficers.map((o) => (
-                  <option key={o.id} value={o.id}>{o.name} ({o.role.replace(/_/g, ' ')} - {o.departmentName || o.deptId})</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="priority" className="field-label">Priority</label>
-              <select id="priority" className="field-control" value={priority} onChange={(e) => setPriority(e.target.value)}>
-                {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="secrecy" className="field-label">Secrecy</label>
-              <select id="secrecy" className="field-control" value={secrecy} onChange={(e) => setSecrecy(e.target.value)}>
-                {SECRECY_LEVELS.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
+            <label htmlFor="subject" className="field-label">Subject Title *</label>
+            <input id="subject" className="field-control" type="text" required placeholder="e.g. Enterprise Cloud Server Infrastructure Upgrade" value={subject} onChange={(e) => setSubject(e.target.value)} style={{ fontWeight: 600, fontSize: '0.95rem' }} />
           </div>
 
           <div>
-            <span className="field-label">Target Departments</span>
-            <div className="chip-group" role="group" aria-label="Target departments">
-              {departments.map((d) => {
-                const active = targetDeptIds.includes(d.id);
-                return (
-                  <button key={d.id} type="button" className={`chip ${active ? 'is-active' : ''}`} onClick={() => toggleDept(d.id)}>
-                    {active ? '✓ ' : ''}{d.name}
-                  </button>
-                );
-              })}
-            </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: '0.4rem', display: 'block' }}>
-              Selected departments form the parallel approval matrix.
-            </span>
+            <label htmlFor="recipient" className="field-label">
+              <User size={15} style={{ display: 'inline', marginRight: 4, verticalAlign: '-2px', color: 'var(--primary)' }} /> Assign To (optional)
+            </label>
+            <select id="recipient" className="field-control" value={assignedOfficerId} onChange={(e) => setAssignedOfficerId(e.target.value)} style={{ fontWeight: 600 }}>
+              <option value="">— Not assigned —</option>
+              {higherOfficers.map((o) => (
+                <option key={o.id} value={o.id}>{o.name} ({o.role.replace(/_/g, ' ')} - {o.departmentName || o.deptId})</option>
+              ))}
+            </select>
           </div>
 
           <div>
-            <label htmlFor="initial-note" className="field-label">Initial Minute (optional)</label>
-            <textarea id="initial-note" className="field-control" rows={3} placeholder="Opening note for the approval chain…" value={initialNote} onChange={(e) => setInitialNote(e.target.value)} />
+            <label htmlFor="initial-note" className="field-label">Opening minute (optional)</label>
+            <textarea id="initial-note" className="field-control" rows={3} placeholder="Opening note…" value={initialNote} onChange={(e) => setInitialNote(e.target.value)} />
           </div>
 
           <div>

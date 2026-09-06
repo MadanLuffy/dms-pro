@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Filter, Eye, Inbox } from 'lucide-react';
 import { useFiles } from '../context/FilesContext';
-import { api } from '../lib/api';
 import StatusBadge from '../components/StatusBadge';
 import Spinner from '../components/Spinner';
 import EmptyState from '../components/EmptyState';
@@ -12,23 +11,16 @@ import { formatDate } from '../utils/format';
 export default function FileListPage({ searchQuery = '', onSearchChange }) {
   const navigate = useNavigate();
   const { files, loading, loadFiles, pagination } = useFiles();
-  const [selectedDept, setSelectedDept] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [page, setPage] = useState(1);
-  const [departments, setDepartments] = useState([]);
-
-  useEffect(() => {
-    api.meta.departments().then(({ departments: d }) => setDepartments(d || [])).catch(() => {});
-  }, []);
 
   useEffect(() => {
     setPage(1);
-  }, [selectedDept, selectedStatus, searchQuery]);
+  }, [selectedStatus, searchQuery]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       loadFiles({
-        department: selectedDept,
         status: selectedStatus,
         q: searchQuery,
         page,
@@ -36,9 +28,9 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
       });
     }, searchQuery ? 250 : 0);
     return () => clearTimeout(timer);
-  }, [selectedDept, selectedStatus, searchQuery, page, loadFiles]);
+  }, [selectedStatus, searchQuery, page, loadFiles]);
 
-  const hasFilters = selectedDept !== 'ALL' || selectedStatus !== 'ALL' || searchQuery.trim();
+  const hasFilters = selectedStatus !== 'ALL' || searchQuery.trim();
 
   const emptyTitle = useMemo(() => {
     if (hasFilters) return 'No subject files match your filter search.';
@@ -52,12 +44,6 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
           <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
             <Filter size={16} /> Filter Files
           </span>
-          <select value={selectedDept} onChange={(e) => setSelectedDept(e.target.value)} aria-label="Filter by department" className="field-control" style={{ width: 'auto' }}>
-            <option value="ALL">All Departments</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>{d.name} ({d.id})</option>
-            ))}
-          </select>
           <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} aria-label="Filter by status" className="field-control" style={{ width: 'auto' }}>
             <option value="ALL">All Statuses</option>
             <option value="DEPT_HEAD_REVIEW">In Department Review</option>
@@ -90,7 +76,6 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
                 <tr>
                   <th>File Reference No</th>
                   <th>Subject Details</th>
-                  <th>Target Depts</th>
                   <th>Current Status</th>
                   <th style={{ textAlign: 'right' }}>Action</th>
                 </tr>
@@ -98,7 +83,7 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
               <tbody>
                 {files.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ padding: '2.5rem', cursor: 'default' }}>
+                    <td colSpan={4} style={{ padding: '2.5rem', cursor: 'default' }}>
                       <EmptyState
                         icon={Inbox}
                         title={emptyTitle}
@@ -115,17 +100,6 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
                         <div style={{ fontSize: '0.76rem', color: 'var(--text-light)', marginTop: '0.2rem' }}>
                           Raised by {file.creator?.name} ({file.creator?.departmentName})
                           {file.createdAt ? ` · ${formatDate(file.createdAt)}` : ''}
-                        </div>
-                      </td>
-                      <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
-                          {file.targetDepts.map((d) => (
-                            <span key={d.id} className="badge badge-submitted" style={{ fontSize: '0.68rem' }}>{d.name}</span>
-                          ))}
-                        </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                          <span className={`priority-tag priority-${(file.priority || 'normal').toLowerCase()}`}>{file.priority}</span>
-                          <span className={`secrecy-pill secrecy-${(file.secrecy || 'internal').toLowerCase()}`}>{file.secrecy}</span>
                         </div>
                       </td>
                       <td>

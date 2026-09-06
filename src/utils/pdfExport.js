@@ -91,10 +91,8 @@ export async function generateFilePDFReport(file) {
         <td style="padding:6px;border-bottom:1px solid #e2e8f0;">${esc(fmt(file.createdAt))}</td>
       </tr>
       <tr>
-        <td style="padding:6px;background:#f8fafc;font-weight:bold;">Priority / Secrecy:</td>
-        <td style="padding:6px;border-bottom:1px solid #e2e8f0;">${esc(file.priority)} / ${esc(file.secrecy)}</td>
         <td style="padding:6px;background:#f8fafc;font-weight:bold;">Lifecycle Status:</td>
-        <td style="padding:6px;border-bottom:1px solid #e2e8f0;"><strong>${esc(file.status)}</strong></td>
+        <td style="padding:6px;border-bottom:1px solid #e2e8f0;" colspan="3"><strong>${esc(file.status)}</strong></td>
       </tr>
     </table>
 

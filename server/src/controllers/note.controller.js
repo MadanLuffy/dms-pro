@@ -1,8 +1,11 @@
 import { prisma } from '../lib/prisma.js';
 import { createAuditLog } from '../utils/audit.js';
 import { emitToFileParticipants } from '../utils/fileAudience.js';
+import { emitToUser } from '../sockets/index.js';
 import { ACTIONS } from '../constants.js';
 import { canAccessFile, fileAccessSelect } from '../utils/fileView.js';
+import { parseIdList, ensureConfirmationDepts } from '../utils/confirmDepts.js';
+import { areAttachmentsLocked, canDeleteAttachment } from '../utils/attachmentPolicy.js';
 
 const noteInclude = {
   author: true,
@@ -11,15 +14,30 @@ const noteInclude = {
 
 export async function addNote(req, res, next) {
   try {
-    const { content = '', sentTo = '' } = req.body || {};
+    const { content = '' } = req.body || {};
+    let sentTo = req.body?.sentTo || '';
     const fileId = req.params.id;
+    const confirmDeptIds = parseIdList(req.body?.confirmDeptIds);
     const file = await prisma.subjectFile.findUnique({
       where: { id: fileId },
-      select: fileAccessSelect,
+      include: {
+        targetDepts: { select: { deptId: true } },
+        approvalMatrix: { select: { status: true, gate: true } },
+      },
     });
     if (!file) return res.status(404).json({ error: 'File not found' });
     if (!canAccessFile(req.user, file)) {
       return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const confirm = await ensureConfirmationDepts(prisma, {
+      fileId,
+      deptIds: confirmDeptIds,
+      currentStatus: file.status,
+    });
+    if (confirm.departments?.length) {
+      const names = confirm.departments.map((d) => d.name).join(', ');
+      sentTo = sentTo ? `${sentTo} · Confirm: ${names}` : `Confirm: ${names}`;
     }
 
     const lastNote = await prisma.note.findFirst({
@@ -58,17 +76,30 @@ export async function addNote(req, res, next) {
       userId: req.user.id,
       userName: req.user.name,
       action: ACTIONS.NOTE_ADDED,
-      details: { refNo: file.refNo, version: note.version },
+      details: { refNo: file.refNo, version: note.version, confirmDepts: confirmDeptIds },
       ipAddress: req.ipAddress,
     });
 
-    await emitToFileParticipants(file, 'note:added', {
+    const audienceFile = { ...file, targetDepts: [...(file.targetDepts || []), ...confirmDeptIds.map((deptId) => ({ deptId }))] };
+    await emitToFileParticipants(audienceFile, 'note:added', {
       fileId: file.id,
       refNo: file.refNo,
       noteId: note.id,
       version: note.version,
       author: req.user.name,
     });
+
+    for (const deptId of confirm.addedDeptIds || []) {
+      const heads = await prisma.user.findMany({ where: { deptId, role: 'DEPT_HEAD' } });
+      for (const u of heads) {
+        if (u.id === req.user.id) continue;
+        emitToUser(u.id, 'file:forwarded', {
+          fileId: file.id,
+          refNo: file.refNo,
+          subject: file.subject,
+        });
+      }
+    }
 
     res.status(201).json({ note: { id: note.id, version: note.version, content: note.content, sentTo: note.sentTo, createdAt: note.createdAt, author: { id: req.user.id, name: req.user.name, role: req.user.role } } });
   } catch (err) {
@@ -203,6 +234,70 @@ export async function getNoteThread(req, res, next) {
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
     res.json({ file, note: thread.find((t) => t.id === noteId), thread });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function addNoteAttachments(req, res, next) {
+  try {
+    const { id: fileId, noteId } = req.params;
+    const note = await prisma.note.findUnique({
+      where: { id: noteId },
+      include: {
+        file: {
+          include: {
+            targetDepts: { select: { deptId: true } },
+            approvalMatrix: { select: { status: true, gate: true } },
+          },
+        },
+      },
+    });
+    if (!note || note.fileId !== fileId) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+    if (!canAccessFile(req.user, note.file)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    if (areAttachmentsLocked(note.file)) {
+      return res.status(409).json({
+        error: 'Cannot add attachments after a department head or CEO has approved.',
+      });
+    }
+    if (!canDeleteAttachment(req.user, note.file, { note: { authorId: note.authorId } })) {
+      return res.status(403).json({ error: 'Only the file creator or the note author can attach files here' });
+    }
+    if (!req.files?.length) {
+      return res.status(400).json({ error: 'Select at least one file to attach' });
+    }
+
+    await prisma.attachment.createMany({
+      data: req.files.map((f) => ({
+        fileId,
+        noteId: note.id,
+        filename: f.originalname,
+        fileUrl: `/uploads/${f.filename}`,
+        mimeType: f.mimetype,
+        sizeBytes: f.size,
+      })),
+    });
+
+    await createAuditLog({
+      userId: req.user.id,
+      userName: req.user.name,
+      action: ACTIONS.ATTACHMENT_ADDED,
+      details: { refNo: note.file.refNo, noteId: note.id, count: req.files.length },
+      ipAddress: req.ipAddress,
+    });
+
+    await emitToFileParticipants(note.file, 'note:added', {
+      fileId,
+      refNo: note.file.refNo,
+      noteId: note.id,
+      author: req.user.name,
+    });
+
+    res.status(201).json({ ok: true, noteId: note.id, added: req.files.length });
   } catch (err) {
     next(err);
   }

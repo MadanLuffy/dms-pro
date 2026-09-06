@@ -96,7 +96,6 @@ async function main() {
   await pageA.waitForSelector('#subject', { timeout: 15000, polling: 200 });
   const subj = `E2E Procurement Policy ${Date.now() % 10000}`;
   await setValue(pageA, '#subject', subj);
-  await pageA.select('#priority', 'HIGH');
   await submitForm(pageA);
   await pageA.waitForFunction(() => /^\/files\/[0-9a-f-]+$/.test(location.pathname), { timeout: 20000, polling: 200 });
   const fileId = pageA.url().split('/').pop();

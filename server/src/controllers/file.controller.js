@@ -5,6 +5,7 @@ import { emitToUser } from '../sockets/index.js';
 import { emitToFileAudience, emitToFileParticipants } from '../utils/fileAudience.js';
 import { contains, parsePagination } from '../utils/query.js';
 import { unlinkUploadByUrl } from '../utils/diskFile.js';
+import { parseIdList } from '../utils/confirmDepts.js';
 import {
   FILE_STATUS,
   APPROVAL_STATUS,
@@ -110,40 +111,23 @@ export async function createFile(req, res, next) {
     if (req.user.role === 'SUPERADMIN') {
       return res.status(403).json({ error: 'Administrators manage users and departments, not file workflows' });
     }
-    const { subject, priority = 'NORMAL', secrecy = 'INTERNAL', initialNote = '', assignedOfficerId: rawOfficerId = null, targetDeptIds } = req.body || {};
+    const { subject, priority: rawPriority = 'NORMAL', secrecy: rawSecrecy = 'INTERNAL', initialNote = '', assignedOfficerId: rawOfficerId = null, targetDeptIds } = req.body || {};
     let assignedOfficerId = rawOfficerId;
     if (assignedOfficerId === 'null' || assignedOfficerId === 'undefined' || assignedOfficerId === '') {
       assignedOfficerId = null;
     }
-    let deptIds = targetDeptIds;
-    if (typeof deptIds === 'string') {
-      const trimmed = deptIds.trim();
-      if (trimmed.startsWith('[')) {
-        try {
-          deptIds = JSON.parse(trimmed);
-        } catch {
-          deptIds = trimmed.slice(1, -1).split(',').map((s) => s.trim()).filter(Boolean);
-        }
-      } else {
-        deptIds = trimmed ? trimmed.split(',').map((s) => s.trim()).filter(Boolean) : [];
-      }
-    }
-    if (!Array.isArray(deptIds)) deptIds = deptIds ? [deptIds] : [];
+    const deptIds = parseIdList(targetDeptIds);
     if (!subject || typeof subject !== 'string') {
       return res.status(400).json({ error: 'Subject is required' });
     }
-    if (deptIds.length === 0 && req.user.deptId) {
-      deptIds = [req.user.deptId];
-    }
-    if (!deptIds.length) {
-      return res.status(400).json({ error: 'At least one target department is required' });
-    }
-    if (!PRIORITY.includes(priority)) return res.status(400).json({ error: 'Invalid priority' });
-    if (!SECRECY.includes(secrecy)) return res.status(400).json({ error: 'Invalid secrecy' });
+    const priority = PRIORITY.includes(rawPriority) ? rawPriority : 'NORMAL';
+    const secrecy = SECRECY.includes(rawSecrecy) ? rawSecrecy : 'INTERNAL';
 
-    const depts = await prisma.department.findMany({ where: { id: { in: deptIds } } });
-    if (depts.length !== new Set(deptIds).size) {
-      return res.status(400).json({ error: 'Invalid target department' });
+    if (deptIds.length) {
+      const depts = await prisma.department.findMany({ where: { id: { in: deptIds } } });
+      if (depts.length !== new Set(deptIds).size) {
+        return res.status(400).json({ error: 'Invalid target department' });
+      }
     }
 
     if (assignedOfficerId) {
@@ -152,9 +136,8 @@ export async function createFile(req, res, next) {
       if (officer.role === 'SUPERADMIN') return res.status(400).json({ error: 'Administrators cannot be assigned as file officers' });
     }
 
-    const departments = await prisma.department.findMany();
-    const deptThreshold = departments.length - 1;
-    const isCeoOnly = deptIds.length >= deptThreshold;
+    const departments = deptIds.length ? await prisma.department.findMany() : [];
+    const isCeoOnly = Boolean(deptIds.length && departments.length && deptIds.length >= Math.max(departments.length - 1, 1));
 
     let refNo;
     for (let i = 0; i < 5; i++) {
@@ -176,29 +159,33 @@ export async function createFile(req, res, next) {
         status: FILE_STATUS.DEPT_HEAD_REVIEW,
         creatorId: req.user.id,
         assignedOfficerId,
-        targetDepts: { create: deptIds.map((deptId) => ({ deptId })) },
-        approvalMatrix: {
-          create: [
-            ...deptIds.map((deptId, idx) => ({
-              deptId,
-              gate: GATE.DEPT,
-              status: APPROVAL_STATUS.PENDING,
-              comments: idx === 0 ? 'New file awaiting department approval' : null,
-            })),
-            {
-              deptId: isCeoOnly ? departments[0].id : deptIds[0],
-              gate: GATE.CEO,
-              status: APPROVAL_STATUS.PENDING,
-            },
-          ],
-        },
+        ...(deptIds.length
+          ? {
+              targetDepts: { create: deptIds.map((deptId) => ({ deptId })) },
+              approvalMatrix: {
+                create: [
+                  ...deptIds.map((deptId, idx) => ({
+                    deptId,
+                    gate: GATE.DEPT,
+                    status: APPROVAL_STATUS.PENDING,
+                    comments: idx === 0 ? 'New file awaiting department approval' : null,
+                  })),
+                  {
+                    deptId: isCeoOnly ? departments[0].id : deptIds[0],
+                    gate: GATE.CEO,
+                    status: APPROVAL_STATUS.PENDING,
+                  },
+                ],
+              },
+            }
+          : {}),
         notes: initialNote.trim() || (req.files && req.files.length > 0)
           ? {
               create: {
                 version: 1,
                 order: 1,
                 content: initialNote,
-                sentTo: deptIds.join(', '),
+                sentTo: deptIds.join(', ') || '',
                 authorId: req.user.id,
               },
             }

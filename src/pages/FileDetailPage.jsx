@@ -104,6 +104,8 @@ export default function FileDetailPage() {
   const [commentBusy, setCommentBusy] = useState(false);
   const [noteBusy, setNoteBusy] = useState(false);
   const [users, setUsers] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [confirmDeptIds, setConfirmDeptIds] = useState([]);
   const [hoveredNote, setHoveredNote] = useState(null);
   const [reassignOpen, setReassignOpen] = useState(false);
   const [reassignId, setReassignId] = useState('');
@@ -116,6 +118,9 @@ export default function FileDetailPage() {
 
   const fileInputRef = useRef(null);
   const replyFileInputRef = useRef(null);
+  const existingNoteFileRef = useRef(null);
+  const attachTargetNoteRef = useRef(null);
+  const [attachingNoteId, setAttachingNoteId] = useState('');
 
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) {
@@ -139,6 +144,7 @@ export default function FileDetailPage() {
 
   useEffect(() => {
     api.meta.users().then(({ users: u }) => setUsers(u || [])).catch(() => {});
+    api.meta.departments().then(({ departments: d }) => setDepartments(d || [])).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -199,6 +205,21 @@ export default function FileDetailPage() {
     }
   };
 
+  const handleAddExistingAttachments = async (note, fileList) => {
+    const files = toUploadFiles(wrapLocalFiles(fileList));
+    if (!note?.id || !files.length) return;
+    setAttachingNoteId(note.id);
+    try {
+      await api.files.addNoteAttachments(id, note.id, files);
+      toast('Files attached to the note', 'success');
+      await load({ silent: true });
+    } catch (err) {
+      toast(err.message || 'Could not attach files', 'error');
+    } finally {
+      setAttachingNoteId('');
+    }
+  };
+
   const recipientValue = (o) => `${o.name} (${o.role.replace(/_/g, ' ')} - ${o.departmentName || o.deptId})`;
 
   const handleRemoveNewAtt = (attId) => {
@@ -249,13 +270,15 @@ export default function FileDetailPage() {
     try {
       await api.files.addNote(id, {
         content: newNoteText.trim() || `${newNoteAttachments.length} file(s) attached`,
-        sentTo: forwardRecipient || 'Approval Chain',
+        sentTo: forwardRecipient || '',
+        confirmDeptIds,
         attachments: toUploadFiles(newNoteAttachments),
       });
       toast('Note minute added', 'success');
       setNewNoteText('');
       setNewNoteAttachments([]);
       setForwardRecipient('');
+      setConfirmDeptIds([]);
       setNoteModal(false);
       await load();
     } catch (err) {
@@ -368,6 +391,17 @@ export default function FileDetailPage() {
 
   return (
     <div className="page" style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+      <input
+        ref={existingNoteFileRef}
+        type="file"
+        multiple
+        accept=".pdf,application/pdf,.docx,.xlsx,.csv,image/*"
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          handleAddExistingAttachments(attachTargetNoteRef.current, e.target.files);
+          e.target.value = '';
+        }}
+      />
       <div className="glass-panel" style={{ padding: '1rem 1.4rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
           <button onClick={() => navigate('/files')} className="btn btn-secondary btn-sm">
@@ -419,18 +453,12 @@ export default function FileDetailPage() {
         </div>
       </div>
 
-      {file.priority === 'URGENT' && (
-        <div className="alert alert-urgent">URGENT priority file — expedite approval</div>
-      )}
-
       <div className="file-detail-grid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
           <div className="surface-card" style={{ padding: '1.25rem 1.4rem' }}>
             <h2 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '0.85rem' }}>File Meta</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem 1rem', fontSize: '0.85rem' }}>
-              <div><span style={{ color: 'var(--text-light)' }}>Secrecy:</span> <span className={`secrecy-pill secrecy-${(file.secrecy || 'internal').toLowerCase()}`}>{file.secrecy}</span></div>
-              <div><span style={{ color: 'var(--text-light)' }}>Priority:</span> <span className={`priority-tag priority-${(file.priority || 'normal').toLowerCase()}`}>{file.priority}</span></div>
-              <div><span style={{ color: 'var(--text-light)' }}>Target Depts:</span> <strong>{file.targetDepts.map((d) => d.name).join(', ')}</strong></div>
+              <div><span style={{ color: 'var(--text-light)' }}>Raised by:</span> <strong>{file.creator?.name}</strong></div>
               <div><span style={{ color: 'var(--text-light)' }}>Created:</span> <strong>{formatDate(file.createdAt)}</strong></div>
             </div>
           </div>
@@ -468,7 +496,7 @@ export default function FileDetailPage() {
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', margin: 0 }}>Versioned minute trail</p>
               </div>
               <span className="badge badge-submitted">{countNotes(rootNotes)} Minutes</span>
-              <button type="button" onClick={() => setNoteModal(true)} className="btn btn-primary btn-sm">
+              <button type="button" onClick={() => { setConfirmDeptIds([]); setNoteModal(true); }} className="btn btn-primary btn-sm">
                 <PenLine size={14} /> Write Note
               </button>
             </div>
@@ -530,6 +558,20 @@ export default function FileDetailPage() {
                       <button type="button" onClick={(e) => { e.stopPropagation(); navigate(`/files/${id}/notes/${note.id}`); }} className="btn btn-ghost btn-sm">
                         Open Thread <ChevronRight size={13} />
                       </button>
+                      {canDeleteAtt({}, note.author?.id) && (
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          disabled={attachingNoteId === note.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            attachTargetNoteRef.current = note;
+                            existingNoteFileRef.current?.click();
+                          }}
+                        >
+                          {attachingNoteId === note.id ? <Loader2 size={13} className="spin" /> : <Paperclip size={13} />} Add files
+                        </button>
+                      )}
                       <button type="button" onClick={(e) => { e.stopPropagation(); openReply(note); }} className="btn btn-secondary btn-sm">
                         <MessageSquareReply size={13} /> Reply
                       </button>
@@ -588,8 +630,9 @@ export default function FileDetailPage() {
             </ErrorBoundary>
           </div>
 
+          {(file.approvalMatrix || []).length > 0 && (
           <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.85rem' }}>
-            <h2 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0 }}>Approval Matrix ({file.approvalMatrix.length})</h2>
+            <h2 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0 }}>Confirmation status ({file.approvalMatrix.length})</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
               {file.approvalMatrix.map((a) => (
                 <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', padding: '0.55rem 0.8rem', borderRadius: 10, border: '1px solid var(--border-color)', background: a.status === 'APPROVED' ? 'var(--success-light)' : a.status === 'RETURNED' ? 'var(--danger-light)' : 'var(--bg-subtle)' }}>
@@ -607,6 +650,7 @@ export default function FileDetailPage() {
               ))}
             </div>
           </div>
+          )}
         </div>
       </div>
 
@@ -630,16 +674,51 @@ export default function FileDetailPage() {
         <textarea rows={3} className="field-control" placeholder="Add optional comment or feedback..." value={commentText} onChange={(e) => setCommentText(e.target.value)} />
       </Modal>
 
-      <Modal open={noteModal} onClose={() => setNoteModal(false)} title="Write Note & Send" width={560}>
+      <Modal open={noteModal} onClose={() => { setNoteModal(false); setConfirmDeptIds([]); }} title="Write Note & Send" width={560}>
         <form onSubmit={handleAddNoteSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <div>
-            <label htmlFor="fwd-recipient" className="field-label">Send To:</label>
-            <select id="fwd-recipient" className="field-control" value={forwardRecipient} onChange={(e) => setForwardRecipient(e.target.value)}>
+            <label htmlFor="fwd-recipient" className="field-label">Send To (optional):</label>
+            <select
+              id="fwd-recipient"
+              className="field-control"
+              value={forwardRecipient}
+              onChange={(e) => {
+                const value = e.target.value;
+                setForwardRecipient(value);
+                const selected = users.find((u) => recipientValue(u) === value);
+                if (selected?.deptId) {
+                  setConfirmDeptIds((prev) => (prev.includes(selected.deptId) ? prev : [...prev, selected.deptId]));
+                }
+              }}
+            >
               <option value="">— Select recipient —</option>
               {users.filter((u) => u.id !== user?.id).map((o) => (
                 <option key={o.id} value={recipientValue(o)}>{recipientValue(o)}</option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <span className="field-label">Confirm with department</span>
+            <div className="chip-group" role="group" aria-label="Confirmation departments">
+              {departments.map((d) => {
+                const active = confirmDeptIds.includes(d.id);
+                return (
+                  <button
+                    key={d.id}
+                    type="button"
+                    data-dept-id={d.id}
+                    className={`chip ${active ? 'is-active' : ''}`}
+                    onClick={() => setConfirmDeptIds((prev) => (prev.includes(d.id) ? prev.filter((id) => id !== d.id) : [...prev, d.id]))}
+                  >
+                    {active ? '✓ ' : ''}{d.name}
+                  </button>
+                );
+              })}
+            </div>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: '0.35rem', display: 'block' }}>
+              Pick the department that should confirm this note. That is when they appear for sign-off.
+            </span>
           </div>
 
           <div>

@@ -73,14 +73,20 @@ export const api = {
     },
     update: (id, payload) => request(`/files/${id}`, { method: 'PATCH', body: payload }),
     remove: (id) => request(`/files/${id}`, { method: 'DELETE' }),
-    addNote: (id, { content, sentTo, attachments }) => {
+    addNote: (id, { content, sentTo, attachments, confirmDeptIds }) => {
       const fd = new FormData();
       fd.append('content', content);
       fd.append('sentTo', sentTo || '');
+      if (confirmDeptIds?.length) fd.append('confirmDeptIds', JSON.stringify(confirmDeptIds));
       if (attachments) {
         for (const file of attachments) fd.append('attachments', file);
       }
       return request(`/files/${id}/notes`, { method: 'POST', body: fd });
+    },
+    addNoteAttachments: (id, noteId, attachments) => {
+      const fd = new FormData();
+      for (const file of attachments || []) fd.append('attachments', file);
+      return request(`/files/${id}/notes/${noteId}/attachments`, { method: 'POST', body: fd });
     },
     replyToNote: (id, noteId, { content, sentTo, attachments }) => {
       const fd = new FormData();

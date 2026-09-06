@@ -6,7 +6,7 @@ import {
   updateFile,
   deleteFile,
 } from '../controllers/file.controller.js';
-import { addNote, addNoteReply, getNoteThread } from '../controllers/note.controller.js';
+import { addNote, addNoteReply, getNoteThread, addNoteAttachments } from '../controllers/note.controller.js';
 import { deleteAttachment } from '../controllers/attachment.controller.js';
 import { decideApproval } from '../controllers/approval.controller.js';
 import { upload } from '../middleware/upload.js';
@@ -25,6 +25,7 @@ router.delete('/:id/attachments/:attachmentId', deleteAttachment);
 router.delete('/:id', deleteFile);
 
 router.post('/:id/notes', uploadRateLimit, upload.array('attachments', 5), addNote);
+router.post('/:id/notes/:noteId/attachments', uploadRateLimit, upload.array('attachments', 5), addNoteAttachments);
 router.post('/:id/notes/:noteId/replies', uploadRateLimit, upload.array('attachments', 5), addNoteReply);
 router.get('/:id/notes/:noteId', getNoteThread);
 
