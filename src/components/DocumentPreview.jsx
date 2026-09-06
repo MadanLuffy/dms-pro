@@ -1,9 +1,7 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
-import { ZoomIn, ZoomOut, RotateCw, FileText, Table, Download, Loader2, AlertTriangle, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { ZoomIn, ZoomOut, RotateCw, FileText, Table, Download, Loader2, AlertTriangle, Trash2 } from 'lucide-react';
 import { fetchAttachment } from '../lib/api';
 import { formatBytes } from '../utils/format';
-
-const PdfPreview = lazy(() => import('./PdfPreview'));
 
 const typeFromMime = (attachment) => {
   const mime = (attachment?.mimeType || attachment?.type || '').toLowerCase();
@@ -19,35 +17,24 @@ const typeFromMime = (attachment) => {
 export default function DocumentPreview({ attachment, canDelete = false, onDelete, deleting = false }) {
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
   const [docxHtml, setDocxHtml] = useState(null);
   const [grid, setGrid] = useState(null);
   const [gridError, setGridError] = useState('');
   const [converting, setConverting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [pdfData, setPdfData] = useState(null);
   const [previewError, setPreviewError] = useState('');
   const [previewBusy, setPreviewBusy] = useState(false);
 
   const type = attachment ? typeFromMime(attachment) : 'unknown';
 
-  const handlePageCount = useCallback((n) => {
-    setPageCount(n || 1);
-    setPage((p) => Math.min(Math.max(p, 1), n || 1));
-  }, []);
-
   useEffect(() => {
     setZoom(100);
     setRotation(0);
-    setPage(1);
-    setPageCount(1);
     setDocxHtml(null);
     setGrid(null);
     setGridError('');
     setPreviewError('');
     setPreviewBusy(false);
-    setPdfData(null);
     setPreviewUrl((current) => {
       if (current) URL.revokeObjectURL(current);
       return null;
@@ -65,12 +52,8 @@ export default function DocumentPreview({ attachment, canDelete = false, onDelet
         const res = await fetchAttachment(attachment.fileUrl);
         const blob = await res.blob();
         if (cancelled) return;
-        if (type === 'pdf') {
-          setPdfData(new Uint8Array(await blob.arrayBuffer()));
-        } else {
-          objectUrl = URL.createObjectURL(blob);
-          setPreviewUrl(objectUrl);
-        }
+        objectUrl = URL.createObjectURL(blob);
+        setPreviewUrl(objectUrl);
       } catch (err) {
         if (!cancelled) setPreviewError(err.message || 'Could not open this file');
       } finally {
@@ -155,36 +138,28 @@ export default function DocumentPreview({ attachment, canDelete = false, onDelet
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'transparent', overflow: 'hidden' }}>
       <div className="preview-toolbar">
-        <div className="preview-toolbar-box">
-          <div className="preview-toolbar-file" title={`${attachment.filename} · ${formatBytes(attachment.sizeBytes)} · ${type.toUpperCase()}`}>
-            {type === 'pdf' && <FileText size={14} style={{ color: 'var(--danger)', flexShrink: 0 }} />}
-            {type === 'docx' && <FileText size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
-            {(type === 'xlsx' || type === 'csv') && <Table size={14} style={{ color: 'var(--success)', flexShrink: 0 }} />}
-            <span className="preview-toolbar-name">{attachment.filename}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0 }}>
+          {type === 'pdf' && <FileText size={17} style={{ color: 'var(--danger)', flexShrink: 0 }} />}
+          {type === 'docx' && <FileText size={17} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
+          {(type === 'xlsx' || type === 'csv') && <Table size={17} style={{ color: 'var(--success)', flexShrink: 0 }} />}
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachment.filename}</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>{formatBytes(attachment.sizeBytes)} · {type.toUpperCase()}</div>
           </div>
-          {type === 'pdf' && (
-            <>
-              <span className="preview-toolbar-split" />
-              <button type="button" className="preview-tool-btn" aria-label="Previous page" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
-                <ChevronLeft size={14} />
-              </button>
-              <span className="preview-toolbar-meta">{page}/{pageCount}</span>
-              <button type="button" className="preview-tool-btn" aria-label="Next page" disabled={page >= pageCount} onClick={() => setPage((p) => Math.min(pageCount, p + 1))}>
-                <ChevronRight size={14} />
-              </button>
-            </>
-          )}
-          <span className="preview-toolbar-split" />
-          <button type="button" className="preview-tool-btn" aria-label="Zoom out" onClick={() => setZoom((z) => Math.max(z - 25, 50))}><ZoomOut size={14} /></button>
-          <span className="preview-toolbar-meta">{zoom}%</span>
-          <button type="button" className="preview-tool-btn" aria-label="Zoom in" onClick={() => setZoom((z) => Math.min(z + 25, 200))}><ZoomIn size={14} /></button>
-          <button type="button" className="preview-tool-btn" aria-label="Rotate" onClick={() => setRotation((r) => (r + 90) % 360)}><RotateCw size={14} /></button>
-          <span className="preview-toolbar-split" />
-          <button type="button" className="preview-tool-btn" aria-label="Download" onClick={handleDownload}><Download size={14} /></button>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <button type="button" onClick={() => setZoom((z) => Math.max(z - 25, 50))} className="btn btn-secondary btn-sm" aria-label="Zoom out"><ZoomOut size={14} /></button>
+          <span style={{ fontSize: '0.78rem', fontFamily: 'monospace', minWidth: 42, textAlign: 'center', fontWeight: 700 }}>{zoom}%</span>
+          <button type="button" onClick={() => setZoom((z) => Math.min(z + 25, 200))} className="btn btn-secondary btn-sm" aria-label="Zoom in"><ZoomIn size={14} /></button>
+          <button type="button" onClick={() => setRotation((r) => (r + 90) % 360)} className="btn btn-secondary btn-sm" aria-label="Rotate"><RotateCw size={14} /></button>
+          <button type="button" onClick={handleDownload} className="btn btn-secondary btn-sm" aria-label="Download">
+            <Download size={14} />
+          </button>
           {canDelete && (
             <button
               type="button"
-              className="preview-tool-btn is-danger"
+              className="btn btn-danger btn-sm"
               disabled={deleting}
               aria-label="Remove attachment"
               title="Remove this attachment"
@@ -196,7 +171,7 @@ export default function DocumentPreview({ attachment, canDelete = false, onDelet
         </div>
       </div>
 
-      <div style={{ flex: 1, overflow: type === 'pdf' ? 'hidden' : 'auto', padding: type === 'pdf' ? 0 : '1.25rem', display: 'flex', justifyContent: 'center', alignItems: type === 'image' ? 'center' : 'flex-start' }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: type === 'pdf' ? 0 : '1.25rem', display: 'flex', justifyContent: 'center', alignItems: type === 'image' ? 'center' : 'flex-start' }}>
         {(previewError || gridError) && (
           <div style={{ padding: '2rem', color: 'var(--danger-deep)', display: 'flex', alignItems: 'flex-start', gap: 8, maxWidth: 520 }}>
             <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
@@ -209,10 +184,12 @@ export default function DocumentPreview({ attachment, canDelete = false, onDelet
             <div style={{ padding: '2rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: 8 }}>
               <Loader2 size={16} className="spin" /> Opening PDF...
             </div>
-          ) : pdfData ? (
-            <Suspense fallback={<div style={{ padding: '2rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: 8 }}><Loader2 size={16} className="spin" /> Opening PDF...</div>}>
-              <PdfPreview data={pdfData} page={page} zoom={zoom} rotation={rotation} onNumPages={handlePageCount} />
-            </Suspense>
+          ) : previewUrl ? (
+            <iframe
+              src={previewUrl}
+              title={attachment.filename}
+              style={{ width: '100%', height: '100%', border: 'none', transform: `scale(${zoom / 100}) rotate(${rotation}deg)`, ...zoomStyle, transition: 'transform 0.2s ease' }}
+            />
           ) : (
             <div style={{ padding: '2rem', color: 'var(--text-light)' }}>No preview available.</div>
           )

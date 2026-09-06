@@ -599,15 +599,15 @@ export default function FileDetailPage() {
           </div>
         </div>
 
-        <div className="surface-card" style={{ padding: '0.85rem' }}>
-          <div style={{ marginBottom: '0.65rem' }}>
-            <h2 style={{ fontSize: '0.9rem', fontWeight: 800, margin: 0 }}>Attachments ({incomingAttachments.length})</h2>
+        <div className="surface-card" style={{ padding: '1.15rem', minHeight: 700 }}>
+          <div style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.85rem' }}>
+            <h2 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0 }}>Attachments ({incomingAttachments.length})</h2>
             {attachmentsLocked && incomingAttachments.length > 0 && (
               <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', margin: '0.35rem 0 0' }}>
                 Attachments are locked because a department head or CEO has already approved.
               </p>
             )}
-            <div className="chip-group" style={{ marginTop: '0.45rem' }}>
+            <div className="chip-group" style={{ marginTop: '0.75rem' }}>
               {incomingAttachments.length === 0 && <span style={{ fontSize: '0.78rem', color: 'var(--text-light)' }}>No documents attached yet.</span>}
               {incomingAttachments.map((att, idx) => (
                 <AttachmentChip

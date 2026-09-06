@@ -33,7 +33,6 @@ export default defineConfig({
             ) return 'react';
             if (id.includes('lucide-react')) return 'icons';
             if (id.includes('socket.io') || id.includes('engine.io')) return 'socket';
-            if (id.includes('pdfjs-dist')) return 'pdfjs';
             if (id.includes('jspdf') || id.includes('html2canvas')) return 'pdf';
             if (id.includes('xlsx')) return 'xlsx';
             if (id.includes('mammoth')) return 'mammoth';
