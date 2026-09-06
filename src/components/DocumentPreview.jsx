@@ -155,40 +155,36 @@ export default function DocumentPreview({ attachment, canDelete = false, onDelet
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'transparent', overflow: 'hidden' }}>
       <div className="preview-toolbar">
-        <div className="preview-toolbar-file" title={`${attachment.filename} · ${formatBytes(attachment.sizeBytes)} · ${type.toUpperCase()}`}>
-          {type === 'pdf' && <FileText size={15} style={{ color: 'var(--danger)', flexShrink: 0 }} />}
-          {type === 'docx' && <FileText size={15} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
-          {(type === 'xlsx' || type === 'csv') && <Table size={15} style={{ color: 'var(--success)', flexShrink: 0 }} />}
-          <span className="preview-toolbar-name">{attachment.filename}</span>
-        </div>
-
-        {type === 'pdf' && (
-          <div className="preview-toolbar-group">
-            <button type="button" className="btn btn-secondary btn-sm" aria-label="Previous page" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
-              <ChevronLeft size={14} />
-            </button>
-            <span className="preview-toolbar-meta">{page} / {pageCount}</span>
-            <button type="button" className="btn btn-secondary btn-sm" aria-label="Next page" disabled={page >= pageCount} onClick={() => setPage((p) => Math.min(pageCount, p + 1))}>
-              <ChevronRight size={14} />
-            </button>
+        <div className="preview-toolbar-box">
+          <div className="preview-toolbar-file" title={`${attachment.filename} · ${formatBytes(attachment.sizeBytes)} · ${type.toUpperCase()}`}>
+            {type === 'pdf' && <FileText size={14} style={{ color: 'var(--danger)', flexShrink: 0 }} />}
+            {type === 'docx' && <FileText size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
+            {(type === 'xlsx' || type === 'csv') && <Table size={14} style={{ color: 'var(--success)', flexShrink: 0 }} />}
+            <span className="preview-toolbar-name">{attachment.filename}</span>
           </div>
-        )}
-
-        <div className="preview-toolbar-group">
-          <button type="button" onClick={() => setZoom((z) => Math.max(z - 25, 50))} className="btn btn-secondary btn-sm" aria-label="Zoom out"><ZoomOut size={14} /></button>
+          {type === 'pdf' && (
+            <>
+              <span className="preview-toolbar-split" />
+              <button type="button" className="preview-tool-btn" aria-label="Previous page" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                <ChevronLeft size={14} />
+              </button>
+              <span className="preview-toolbar-meta">{page}/{pageCount}</span>
+              <button type="button" className="preview-tool-btn" aria-label="Next page" disabled={page >= pageCount} onClick={() => setPage((p) => Math.min(pageCount, p + 1))}>
+                <ChevronRight size={14} />
+              </button>
+            </>
+          )}
+          <span className="preview-toolbar-split" />
+          <button type="button" className="preview-tool-btn" aria-label="Zoom out" onClick={() => setZoom((z) => Math.max(z - 25, 50))}><ZoomOut size={14} /></button>
           <span className="preview-toolbar-meta">{zoom}%</span>
-          <button type="button" onClick={() => setZoom((z) => Math.min(z + 25, 200))} className="btn btn-secondary btn-sm" aria-label="Zoom in"><ZoomIn size={14} /></button>
-          <button type="button" onClick={() => setRotation((r) => (r + 90) % 360)} className="btn btn-secondary btn-sm" aria-label="Rotate"><RotateCw size={14} /></button>
-        </div>
-
-        <div className="preview-toolbar-group">
-          <button type="button" onClick={handleDownload} className="btn btn-secondary btn-sm" aria-label="Download">
-            <Download size={14} />
-          </button>
+          <button type="button" className="preview-tool-btn" aria-label="Zoom in" onClick={() => setZoom((z) => Math.min(z + 25, 200))}><ZoomIn size={14} /></button>
+          <button type="button" className="preview-tool-btn" aria-label="Rotate" onClick={() => setRotation((r) => (r + 90) % 360)}><RotateCw size={14} /></button>
+          <span className="preview-toolbar-split" />
+          <button type="button" className="preview-tool-btn" aria-label="Download" onClick={handleDownload}><Download size={14} /></button>
           {canDelete && (
             <button
               type="button"
-              className="btn btn-danger btn-sm"
+              className="preview-tool-btn is-danger"
               disabled={deleting}
               aria-label="Remove attachment"
               title="Remove this attachment"

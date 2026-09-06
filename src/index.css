@@ -810,8 +810,8 @@ input:focus {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  min-height: 440px;
-  height: min(70vh, 720px);
+  min-height: 360px;
+  height: min(58vh, 560px);
   background: var(--bg-inset);
 }
 
@@ -820,52 +820,88 @@ input:focus {
   top: 0;
   z-index: 2;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.28rem 0.5rem;
-  min-height: 36px;
+  padding: 0.35rem 0.45rem;
   background: var(--bg-glass-strong);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-color);
 }
 
+.preview-toolbar-box {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.1rem;
+  width: 100%;
+  min-height: 32px;
+  padding: 0.12rem 0.28rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-surface);
+}
+
 .preview-toolbar-file {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   min-width: 0;
   flex: 1;
+  max-width: 38%;
 }
 
 .preview-toolbar-name {
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--text-main);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.preview-toolbar-group {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
+.preview-toolbar-split {
+  width: 1px;
+  height: 16px;
+  margin: 0 0.28rem;
+  background: var(--border-color);
   flex-shrink: 0;
 }
 
 .preview-toolbar-meta {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-family: var(--font-mono);
   font-weight: 700;
-  min-width: 3.2rem;
+  min-width: 2.4rem;
   text-align: center;
   color: var(--text-muted);
+  flex-shrink: 0;
 }
 
-.preview-toolbar .btn {
-  padding: 0.18rem 0.38rem;
-  min-height: 28px;
+.preview-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.preview-tool-btn:hover:not(:disabled) {
+  background: var(--bg-subtle);
+}
+
+.preview-tool-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.preview-tool-btn.is-danger {
+  color: var(--danger);
 }
 
 .pdf-stage {
