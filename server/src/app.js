@@ -10,10 +10,9 @@ import fileRoutes from './routes/file.routes.js';
 import auditRoutes from './routes/audit.routes.js';
 import metaRoutes from './routes/meta.routes.js';
 import adminRoutes from './routes/admin.routes.js';
-import { UPLOAD_DIR } from './middleware/upload.js';
 import { requireAuth } from './middleware/auth.js';
 import { prisma } from './lib/prisma.js';
-import { canAccessFile, fileAccessSelect } from './utils/fileView.js';
+import { streamUpload } from './controllers/upload.controller.js';
 import { notFound, errorHandler } from './middleware/error.js';
 import { apiRateLimit } from './middleware/rateLimit.js';
 import { getClientOrigins } from './config.js';
@@ -25,23 +24,6 @@ const CLIENT_ORIGINS = getClientOrigins();
 
 const CLIENT_BUILD_PATH = path.join(__dirname, '../../dist');
 const IS_PROD = process.env.NODE_ENV === 'production';
-
-async function scopedUploads(req, res, next) {
-  try {
-    const filename = path.basename(req.path);
-    const attachment = await prisma.attachment.findFirst({
-      where: { fileUrl: `/uploads/${filename}` },
-      select: { file: { select: fileAccessSelect } },
-    });
-    if (!attachment) return res.status(404).json({ error: 'Not found' });
-    if (!canAccessFile(req.user, attachment.file)) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-    next();
-  } catch (err) {
-    next(err);
-  }
-}
 
 function securityHeaders(req, res, next) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -104,14 +86,7 @@ export function createApp() {
 
   app.use('/api', apiRateLimit);
 
-  app.use(
-    '/uploads',
-    requireAuth,
-    scopedUploads,
-    express.static(UPLOAD_DIR, {
-      setHeaders: (res) => res.setHeader('X-Content-Type-Options', 'nosniff'),
-    })
-  );
+  app.get('/uploads/:filename', requireAuth, streamUpload);
 
   if (!IS_PROD) {
     app.get('/api/demo-users', listDemoUsers);

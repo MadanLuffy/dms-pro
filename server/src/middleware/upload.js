@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const UPLOAD_DIR = path.resolve(__dirname, '../../uploads');
+const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR || path.join(__dirname, '../../uploads'));
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
@@ -39,7 +39,7 @@ const ALLOWED_EXTENSIONS = new Set([
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
   filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname);
+    const ext = path.extname(file.originalname || '').toLowerCase();
     const name = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`;
     cb(null, name);
   },
@@ -47,11 +47,17 @@ const storage = multer.diskStorage({
 
 function fileFilter(_req, file, cb) {
   const ext = path.extname(file.originalname || '').toLowerCase();
-  if (ALLOWED_EXTENSIONS.has(ext) && ALLOWED.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Unsupported file type'));
+  const mime = (file.mimetype || '').toLowerCase();
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    return cb(new Error('Unsupported file type'));
   }
+  if (ext === '.pdf' && (ALLOWED.includes(mime) || mime === 'application/x-pdf' || mime === 'application/octet-stream' || !mime)) {
+    return cb(null, true);
+  }
+  if (ALLOWED.includes(file.mimetype)) {
+    return cb(null, true);
+  }
+  cb(new Error('Unsupported file type'));
 }
 
 export const upload = multer({

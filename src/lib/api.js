@@ -119,5 +119,22 @@ export const api = {
 export function attachmentUrl(relPath) {
   if (!relPath) return null;
   if (relPath.startsWith('http')) return relPath;
-  return `${api.base.replace(/\/api$/, '')}${relPath}`;
+  const origin = api.base.replace(/\/api\/?$/, '');
+  return `${origin}${relPath.startsWith('/') ? relPath : `/${relPath}`}`;
+}
+
+export async function fetchAttachment(relPath) {
+  const url = attachmentUrl(relPath);
+  const res = await fetch(url, { credentials: 'include' });
+  if (!res.ok) {
+    let message = `Could not open file (${res.status})`;
+    try {
+      const data = await res.json();
+      if (data?.error) message = data.error;
+    } catch {
+      /* body may not be JSON */
+    }
+    throw new Error(message);
+  }
+  return res;
 }
