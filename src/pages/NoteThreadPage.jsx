@@ -214,7 +214,7 @@ export default function NoteThreadPage() {
                 <option key={u.id} value={`${u.name} (${roleLabel(u.role)})`}>{u.name} ({roleLabel(u.role)} - {u.departmentName || u.deptId})</option>
               ))}
             </select>
-            <textarea id="threadReply-text" value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={3} placeholder="Type your reply..." style={{ width: '100%', padding: '0.6rem', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: '0.85rem', outline: 'none', resize: 'vertical', fontFamily: 'inherit', background: 'var(--bg-surface)' }} />
+            <textarea id="threadReply-text" value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={3} placeholder="Reply" style={{ width: '100%', padding: '0.6rem', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: '0.85rem', outline: 'none', resize: 'vertical', fontFamily: 'inherit', background: 'var(--bg-surface)' }} />
             <input id="threadReply-file" key={fileInputKey} type="file" multiple onChange={addFiles} style={{ fontSize: '0.78rem' }} />
             {replyAttachments.length > 0 && (
               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>

@@ -65,7 +65,7 @@ export function FilesProvider({ children }) {
     if (!socket) return;
 
     const handle = (eventName) => () => {
-      toast(`Live update: ${eventName.replaceAll(':', ' ')}`, 'notification');
+      toast('File list updated', 'notification');
       loadFiles({}, { silent: true });
     };
 

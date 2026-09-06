@@ -85,7 +85,7 @@ async function main() {
     { email: 'vikram.singh@skandasoft.com', name: 'Vikram Singh', role: 'DEPT_HEAD', deptId: 'HR' },
     { email: 'anita.desai@skandasoft.com', name: 'Anita Desai', role: 'DEPT_HEAD', deptId: 'LEGAL' },
     { email: 'rajesh.mehta@skandasoft.com', name: 'Rajesh Mehta', role: 'DEPT_HEAD', deptId: 'OPERATIONS' },
-    { email: 'ceo@skandasoft.com', name: 'Shiv Nadar', role: 'CEO', deptId: 'IT' },
+    { email: 'ceo@skandasoft.com', name: 'CEO', role: 'CEO', deptId: 'IT' },
     { email: 'admin@skandasoft.com', name: 'Admin', role: 'SUPERADMIN', deptId: 'IT' },
   ];
 

@@ -55,8 +55,8 @@ export default function NewFilePage({ onClose }) {
       <div className="modal-content" style={{ maxWidth: 720, maxHeight: '92vh', padding: 0, overflow: 'hidden' }}>
         <div className="modal-hero">
           <div>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>Create New Subject File</h3>
-            <p style={{ fontSize: '0.8rem', color: '#dbeafe', margin: '0.2rem 0 0 0' }}>Start a file. Choose departments when you send a note for confirmation.</p>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>Create New File</h3>
+            <p style={{ fontSize: '0.8rem', color: '#dbeafe', margin: '0.2rem 0 0 0' }}>Enter a subject. Choose departments later when you send a note.</p>
           </div>
           <button onClick={close} aria-label="Close" className="btn btn-secondary btn-sm" style={{ padding: '0.35rem', background: 'rgba(255,255,255,0.18)', border: 'none', color: '#ffffff' }}>
             <X size={18} />
@@ -67,8 +67,8 @@ export default function NewFilePage({ onClose }) {
           {error && <div role="alert" className="alert alert-error">{error}</div>}
 
           <div>
-            <label htmlFor="subject" className="field-label">Subject Title *</label>
-            <input id="subject" className="field-control" type="text" required placeholder="e.g. Enterprise Cloud Server Infrastructure Upgrade" value={subject} onChange={(e) => setSubject(e.target.value)} style={{ fontWeight: 600, fontSize: '0.95rem' }} />
+            <label htmlFor="subject" className="field-label">Subject *</label>
+            <input id="subject" className="field-control" type="text" required placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} style={{ fontWeight: 600, fontSize: '0.95rem' }} />
           </div>
 
           <div>
@@ -84,8 +84,8 @@ export default function NewFilePage({ onClose }) {
           </div>
 
           <div>
-            <label htmlFor="initial-note" className="field-label">Opening minute (optional)</label>
-            <textarea id="initial-note" className="field-control" rows={3} placeholder="Opening note…" value={initialNote} onChange={(e) => setInitialNote(e.target.value)} />
+            <label htmlFor="initial-note" className="field-label">Opening note (optional)</label>
+            <textarea id="initial-note" className="field-control" rows={3} placeholder="Note" value={initialNote} onChange={(e) => setInitialNote(e.target.value)} />
           </div>
 
           <div>

@@ -44,7 +44,7 @@ export default function Header({ onOpenNewFile, searchQuery, setSearchQuery }) {
             <span className="brand-mark"><Folder size={18} /></span>
             <span>
               <div style={{ fontSize: '1rem', fontWeight: 800, lineHeight: 1.2, fontFamily: 'var(--font-heading)', letterSpacing: '-0.015em' }}>
-                DMS Pro <span className="brand-chip">{adminUser ? 'Admin Portal' : 'Department Portal'}</span>
+                Document Management
               </div>
               <p style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>
                 {user.departmentName || user.deptId}
@@ -102,7 +102,7 @@ export default function Header({ onOpenNewFile, searchQuery, setSearchQuery }) {
             )}
             {canViewAudit && (
               <button type="button" onClick={() => navigate('/audit')} className={`btn nav-pill ${onAudit ? 'btn-primary is-active' : 'btn-secondary'}`}>
-                <Shield size={16} /> Audit Trail
+                <Shield size={16} /> Audit
               </button>
             )}
           </nav>
@@ -113,7 +113,7 @@ export default function Header({ onOpenNewFile, searchQuery, setSearchQuery }) {
               <input
                 type="search"
                 aria-label="Search files by reference number or subject"
-                placeholder="Search File No or Subject..."
+                placeholder="Search files"
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
               />

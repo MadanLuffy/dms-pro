@@ -36,7 +36,7 @@ export async function createDepartment(req, res, next) {
     if (!name) return res.status(400).json({ error: 'Department name is required' });
     if (!DEPT_ID.test(id)) {
       return res.status(400).json({
-        error: 'Department ID must be 2–20 characters: start with a letter, then A–Z, 0–9, or _ (e.g. PROCUREMENT)',
+        error: 'Department ID must be 2–20 characters: start with a letter, then A–Z, 0–9, or underscore',
       });
     }
 

@@ -135,7 +135,7 @@ export default function AdminPage() {
             className="field-control"
             value={deptId}
             onChange={(e) => setDeptId(e.target.value.toUpperCase())}
-            placeholder="e.g. PROCUREMENT"
+            placeholder="Department ID"
             maxLength={20}
           />
           <label htmlFor="dept-name" className="field-label">Department Name</label>
@@ -144,7 +144,7 @@ export default function AdminPage() {
             className="field-control"
             value={deptName}
             onChange={(e) => setDeptName(e.target.value)}
-            placeholder="e.g. Procurement"
+            placeholder="Department name"
             required
           />
           <p className="field-hint">ID is auto-derived from the name if left blank (A–Z, 0–9, underscore).</p>

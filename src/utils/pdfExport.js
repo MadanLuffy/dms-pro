@@ -19,7 +19,7 @@ export async function generateFilePDFReport(file) {
 
   const approvals = (file.approvalMatrix || [])
     .map((m) => ({
-      label: m.gate === 'CEO' ? '🏛️ CEO Gate' : `🏢 ${m.departmentName || m.deptId}`,
+      label: m.gate === 'CEO' ? 'CEO' : (m.departmentName || m.deptId),
       status: m.status,
       reviewedBy: m.reviewedBy || '-',
       timestamp: fmt(m.timestamp),
@@ -50,7 +50,7 @@ export async function generateFilePDFReport(file) {
     .map(
       (n) => `
       <div style="background:#f8fafc;border-left:3px solid #2563eb;padding:8px 12px;margin-bottom:10px;border-radius:4px;">
-        <div style="font-size:11px;font-weight:bold;color:#1e40af;margin-bottom:4px;">Note Sheet v${esc(n.version)} — ${esc(n.author)} (${esc(n.time)})</div>
+        <div style="font-size:11px;font-weight:bold;color:#1e40af;margin-bottom:4px;">Note v${esc(n.version)} — ${esc(n.author)} (${esc(n.time)})</div>
         <div style="font-size:11px;color:#334155;line-height:1.4;">${esc(n.content)}</div>
       </div>`
     )
@@ -69,15 +69,15 @@ export async function generateFilePDFReport(file) {
   reportElement.innerHTML = `
     <div style="border-bottom:3px solid #1e40af;padding-bottom:15px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;">
       <div>
-        <h1 style="color:#1e3a8a;font-size:24px;margin:0;font-weight:800;">SKANDA IT SOLUTIONS [P] LTD</h1>
-        <p style="margin:4px 0 0 0;font-size:11px;color:#475569;">Bangalore - 560043</p>
+        <h1 style="color:#1e3a8a;font-size:24px;margin:0;font-weight:800;">Document Management</h1>
+        <p style="margin:4px 0 0 0;font-size:11px;color:#475569;">File report</p>
       </div>
       <div style="text-align:right;">
-        <span style="background:#dbeafe;color:#1e40af;padding:4px 10px;font-weight:bold;border-radius:4px;font-size:12px;">OFFICIAL ARCHIVAL COMPILATION</span>
+        <span style="background:#dbeafe;color:#1e40af;padding:4px 10px;font-weight:bold;border-radius:4px;font-size:12px;">FILE REPORT</span>
       </div>
     </div>
 
-    <h2 style="font-size:18px;color:#1e293b;margin-top:0;margin-bottom:15px;border-bottom:1px solid #e2e8f0;padding-bottom:8px;">Subject File Lifecycle Report: ${esc(file.refNo)}</h2>
+    <h2 style="font-size:18px;color:#1e293b;margin-top:0;margin-bottom:15px;border-bottom:1px solid #e2e8f0;padding-bottom:8px;">File: ${esc(file.refNo)}</h2>
 
     <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px;">
       <tr>
@@ -85,24 +85,24 @@ export async function generateFilePDFReport(file) {
         <td style="padding:6px;border-bottom:1px solid #e2e8f0;" colspan="3"><strong>${esc(file.subject)}</strong></td>
       </tr>
       <tr>
-        <td style="padding:6px;background:#f8fafc;font-weight:bold;">Raised By:</td>
+        <td style="padding:6px;background:#f8fafc;font-weight:bold;">Created By:</td>
         <td style="padding:6px;border-bottom:1px solid #e2e8f0;">${esc(file.creator?.name || '—')} (${esc(file.creator?.departmentName || '—')})</td>
         <td style="padding:6px;background:#f8fafc;font-weight:bold;">Created:</td>
         <td style="padding:6px;border-bottom:1px solid #e2e8f0;">${esc(fmt(file.createdAt))}</td>
       </tr>
       <tr>
-        <td style="padding:6px;background:#f8fafc;font-weight:bold;">Lifecycle Status:</td>
+        <td style="padding:6px;background:#f8fafc;font-weight:bold;">Status:</td>
         <td style="padding:6px;border-bottom:1px solid #e2e8f0;" colspan="3"><strong>${esc(file.status)}</strong></td>
       </tr>
     </table>
 
-    <h3 style="font-size:14px;color:#1e40af;border-bottom:2px solid #93c5fd;padding-bottom:4px;margin-top:25px;">1. Approval Matrix &amp; Sign-Offs</h3>
+    <h3 style="font-size:14px;color:#1e40af;border-bottom:2px solid #93c5fd;padding-bottom:4px;margin-top:25px;">1. Approvals</h3>
     <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:11px;">
       <thead>
         <tr style="background:#f1f5f9;">
-          <th style="padding:8px;text-align:left;border:1px solid #cbd5e1;">Gate</th>
+          <th style="padding:8px;text-align:left;border:1px solid #cbd5e1;">Department</th>
           <th style="padding:8px;text-align:left;border:1px solid #cbd5e1;">Status</th>
-          <th style="padding:8px;text-align:left;border:1px solid #cbd5e1;">Sign-Off By</th>
+          <th style="padding:8px;text-align:left;border:1px solid #cbd5e1;">Approved By</th>
           <th style="padding:8px;text-align:left;border:1px solid #cbd5e1;">Timestamp</th>
           <th style="padding:8px;text-align:left;border:1px solid #cbd5e1;">Remarks</th>
         </tr>
@@ -110,12 +110,12 @@ export async function generateFilePDFReport(file) {
       <tbody>${approvalRows || `<tr><td colspan="5" style="padding:6px;border:1px solid #cbd5e1;">Pending approvals</td></tr>`}</tbody>
     </table>
 
-    <h3 style="font-size:14px;color:#1e40af;border-bottom:2px solid #93c5fd;padding-bottom:4px;margin-top:25px;">2. Versioned Note-Sheet History</h3>
+    <h3 style="font-size:14px;color:#1e40af;border-bottom:2px solid #93c5fd;padding-bottom:4px;margin-top:25px;">2. Notes</h3>
     <div style="margin-bottom:20px;">${noteBlocks || '<p style="font-size:12px;color:#64748b;">No notes recorded.</p>'}</div>
 
     <div style="margin-top:30px;padding-top:15px;border-top:1px solid #cbd5e1;font-size:10px;color:#64748b;display:flex;justify-content:space-between;">
       <span>Compiled on: ${esc(new Date().toLocaleString())}</span>
-      <span>Skanda IT Solutions [P] Ltd — DMS Pro Archival Engine</span>
+      <span>Document Management</span>
     </div>
   `;
 
@@ -144,7 +144,7 @@ export async function generateFilePDFReport(file) {
       heightLeft -= pageHeight - margin * 2;
     }
 
-    pdf.save(`DMS_Lifecycle_Report_${file.refNo}.pdf`);
+    pdf.save(`File_Report_${file.refNo}.pdf`);
   } catch (err) {
     console.error('PDF Export Error:', err);
     throw new Error('PDF export failed');

@@ -274,7 +274,7 @@ export default function FileDetailPage() {
         confirmDeptIds,
         attachments: toUploadFiles(newNoteAttachments),
       });
-      toast('Note minute added', 'success');
+      toast('Note added', 'success');
       setNewNoteText('');
       setNewNoteAttachments([]);
       setForwardRecipient('');
@@ -357,7 +357,7 @@ export default function FileDetailPage() {
     try {
       const { generateFilePDFReport } = await import('../utils/pdfExport');
       await generateFilePDFReport(file);
-      toast('Archival PDF downloaded', 'success');
+      toast('PDF downloaded', 'success');
     } catch (err) {
       toast('PDF export failed: ' + err.message, 'error');
     } finally {
@@ -383,7 +383,7 @@ export default function FileDetailPage() {
     return (
       <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-light)' }}>
         <div style={{ margin: '0.5rem 0' }}>{error}</div>
-        <button className="btn btn-primary" onClick={() => navigate('/files')}>Back to Registry</button>
+        <button className="btn btn-primary" onClick={() => navigate('/files')}>Back to Files</button>
       </div>
     );
   }
@@ -405,11 +405,11 @@ export default function FileDetailPage() {
       <div className="glass-panel" style={{ padding: '1rem 1.4rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
           <button onClick={() => navigate('/files')} className="btn btn-secondary btn-sm">
-            <ArrowLeft size={16} /> Back to Directory
+            <ArrowLeft size={16} /> Back to Files
           </button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: 'var(--text-light)', marginBottom: '0.2rem' }}>
-              <span>Directory</span>
+              <span>Files</span>
               <ChevronRight size={13} />
               <span>{file.creator?.departmentName}</span>
               <ChevronRight size={13} />
@@ -422,12 +422,12 @@ export default function FileDetailPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-light)' }}>Assigned Officer</div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-deep)' }}>{file.assignedOfficer?.name || 'Higher Authority'}</div>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-deep)' }}>{file.assignedOfficer?.name || 'Not assigned'}</div>
           </div>
           <StatusBadge status={file.status} size="lg" />
           <button onClick={handleExport} className="btn btn-secondary btn-sm" disabled={!!exportBusy}>
             {exportBusy === 'archival' ? <Loader2 size={15} className="spin" /> : <Download size={15} />}
-            Export Archival PDF
+            Export PDF
           </button>
           <button onClick={handleNotesExport} className="btn btn-secondary btn-sm" disabled={!!exportBusy}>
             {exportBusy === 'notes' ? <Loader2 size={15} className="spin" /> : <FileText size={15} />}
@@ -456,9 +456,9 @@ export default function FileDetailPage() {
       <div className="file-detail-grid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
           <div className="surface-card" style={{ padding: '1.25rem 1.4rem' }}>
-            <h2 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '0.85rem' }}>File Meta</h2>
+            <h2 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '0.85rem' }}>File details</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem 1rem', fontSize: '0.85rem' }}>
-              <div><span style={{ color: 'var(--text-light)' }}>Raised by:</span> <strong>{file.creator?.name}</strong></div>
+              <div><span style={{ color: 'var(--text-light)' }}>Created by:</span> <strong>{file.creator?.name}</strong></div>
               <div><span style={{ color: 'var(--text-light)' }}>Created:</span> <strong>{formatDate(file.createdAt)}</strong></div>
             </div>
           </div>
@@ -468,7 +468,7 @@ export default function FileDetailPage() {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Shield size={17} style={{ color: 'var(--success)' }} />
-                  <strong style={{ fontSize: '0.9rem', color: 'var(--success-deep)' }}>Sign-Off Pending</strong>
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--success-deep)' }}>Approval pending</strong>
                 </div>
                 <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>Sign as {user.name} ({user.role})</div>
               </div>
@@ -485,24 +485,24 @@ export default function FileDetailPage() {
 
           {canResubmit && (
             <button type="button" onClick={handleResubmit} className="btn btn-primary" style={{ alignSelf: 'flex-end' }}>
-              <RefreshCw size={16} /> Resubmit File for Review
+              <RefreshCw size={16} /> Resubmit
             </button>
           )}
 
           <div className="surface-card" style={{ padding: '1.25rem 1.4rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.85rem', marginBottom: '1rem', gap: '0.6rem', flexWrap: 'wrap' }}>
               <div>
-                <h2 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0 }}>Official Note Sheet Stream</h2>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', margin: 0 }}>Versioned minute trail</p>
+                <h2 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0 }}>Notes</h2>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', margin: 0 }}>Notes and replies</p>
               </div>
-              <span className="badge badge-submitted">{countNotes(rootNotes)} Minutes</span>
+              <span className="badge badge-submitted">{countNotes(rootNotes)} Notes</span>
               <button type="button" onClick={() => { setConfirmDeptIds([]); setNoteModal(true); }} className="btn btn-primary btn-sm">
                 <PenLine size={14} /> Write Note
               </button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {rootNotes.length === 0 && <p style={{ fontSize: '0.82rem', color: 'var(--text-light)', textAlign: 'center', padding: '0.75rem 0' }}>No notes yet. Click <strong>Write Note</strong> to add your first minute.</p>}
+              {rootNotes.length === 0 && <p style={{ fontSize: '0.82rem', color: 'var(--text-light)', textAlign: 'center', padding: '0.75rem 0' }}>No notes yet. Click <strong>Write Note</strong> to add one.</p>}
               {rootNotes.map((note, idx) => {
                 const isLatest = idx === rootNotes.length - 1;
                 const noteAtts = note.attachments || [];
@@ -597,7 +597,7 @@ export default function FileDetailPage() {
 
         <div className="surface-card" style={{ padding: '1.15rem', minHeight: 700 }}>
           <div style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.85rem' }}>
-            <h2 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0 }}>Document Canvas ({incomingAttachments.length} files)</h2>
+            <h2 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0 }}>Attachments ({incomingAttachments.length})</h2>
             {attachmentsLocked && incomingAttachments.length > 0 && (
               <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', margin: '0.35rem 0 0' }}>
                 Attachments are locked because a department head or CEO has already approved.
@@ -638,10 +638,10 @@ export default function FileDetailPage() {
                 <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', padding: '0.55rem 0.8rem', borderRadius: 10, border: '1px solid var(--border-color)', background: a.status === 'APPROVED' ? 'var(--success-light)' : a.status === 'RETURNED' ? 'var(--danger-light)' : 'var(--bg-subtle)' }}>
                   <div>
                     <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                      {a.gate === 'CEO' ? 'CEO Gate' : a.departmentName}
+                      {a.gate === 'CEO' ? 'CEO' : a.departmentName}
                     </div>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-light)' }}>
-                      {a.reviewedBy ? `Signed by ${a.reviewedBy}${a.timestamp ? ` · ${formatDate(a.timestamp)}` : ''}` : 'Awaiting sign-off'}
+                      {a.reviewedBy ? `Signed by ${a.reviewedBy}${a.timestamp ? ` · ${formatDate(a.timestamp)}` : ''}` : 'Waiting'}
                       {a.comments ? ` · "${a.comments}"` : ''}
                     </div>
                   </div>
@@ -657,7 +657,7 @@ export default function FileDetailPage() {
       <Modal
         open={!!commentModal}
         onClose={() => setCommentModal(null)}
-        title={commentModal === 'RETURN' || commentModal === 'CEO_RETURN' ? 'Return Subject File' : 'Confirm Authorization & Sign'}
+        title={commentModal === 'RETURN' || commentModal === 'CEO_RETURN' ? 'Return file' : 'Confirm Authorization & Sign'}
         width={460}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', paddingBottom: '1.25rem' }}>
@@ -671,7 +671,7 @@ export default function FileDetailPage() {
         <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: '1rem' }}>
           Signing as <strong>{user?.name} ({user?.role})</strong>.
         </p>
-        <textarea rows={3} className="field-control" placeholder="Add optional comment or feedback..." value={commentText} onChange={(e) => setCommentText(e.target.value)} />
+        <textarea rows={3} className="field-control" placeholder="Comment (optional)" value={commentText} onChange={(e) => setCommentText(e.target.value)} />
       </Modal>
 
       <Modal open={noteModal} onClose={() => { setNoteModal(false); setConfirmDeptIds([]); }} title="Write Note & Send" width={560}>
@@ -717,13 +717,13 @@ export default function FileDetailPage() {
               })}
             </div>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: '0.35rem', display: 'block' }}>
-              Pick the department that should confirm this note. That is when they appear for sign-off.
+              Pick the department that should confirm this note.
             </span>
           </div>
 
           <div>
-            <label htmlFor="note-text" className="field-label">Minute Text:</label>
-            <textarea id="note-text" className="field-control" rows={4} placeholder="Write your minute here…" value={newNoteText} onChange={(e) => setNewNoteText(e.target.value)} />
+            <label htmlFor="note-text" className="field-label">Note</label>
+            <textarea id="note-text" className="field-control" rows={4} placeholder="Write your note" value={newNoteText} onChange={(e) => setNewNoteText(e.target.value)} />
           </div>
 
           {newNoteAttachments.length > 0 && (
@@ -780,7 +780,7 @@ export default function FileDetailPage() {
 
           <div>
             <label htmlFor="reply-text" className="field-label">Your Reply:</label>
-            <textarea id="reply-text" className="field-control" rows={4} placeholder="Type your reply…" value={replyText} onChange={(e) => setReplyText(e.target.value)} />
+            <textarea id="reply-text" className="field-control" rows={4} placeholder="Reply" value={replyText} onChange={(e) => setReplyText(e.target.value)} />
           </div>
 
           {replyAttachments.length > 0 && (

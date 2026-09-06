@@ -68,7 +68,7 @@ export default function AuditPage() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `DMS_Pro_Audit_Log_${Date.now()}.csv`;
+    link.download = `Audit_Log_${Date.now()}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
   };
@@ -79,19 +79,19 @@ export default function AuditPage() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Shield size={22} style={{ color: 'var(--primary)' }} />
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Administrative Audit & System Traceability</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Audit log</h2>
           </div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Immutable audit trail of all user actions and sign-offs.</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Record of logins, files, notes, and approvals.</p>
         </div>
         <button onClick={exportCSV} className="btn btn-secondary">
-          <Download size={16} /> Export This Page (CSV)
+          <Download size={16} /> Export CSV
         </button>
       </div>
 
       <div className="glass-panel" style={{ padding: '0.9rem 1.1rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.85rem' }}>
         <div className="search-field" style={{ flex: '1 1 240px', maxWidth: 360 }}>
           <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
-          <input type="search" aria-label="Search audit logs" placeholder="Search user, file, details..." value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input type="search" aria-label="Search audit logs" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
         <select value={action} onChange={(e) => setAction(e.target.value)} aria-label="Filter by action" className="field-control" style={{ width: 'auto' }}>
           {ACTIONS.map((a) => <option key={a} value={a}>{a === 'ALL' ? 'All Actions' : a.replace(/_/g, ' ')}</option>)}

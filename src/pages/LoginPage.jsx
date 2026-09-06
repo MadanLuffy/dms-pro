@@ -41,9 +41,9 @@ export default function LoginPage() {
           <div className="brand-orb">
             <ShieldCheck size={26} />
           </div>
-          <h2 style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.015em' }}>DMS Pro Sign In</h2>
+          <h2 style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.015em' }}>Sign in</h2>
           <p style={{ fontSize: '0.8125rem', color: 'var(--text-light)', marginTop: '0.2rem' }}>
-            Enter your credentials to access the portal
+            Use your office email and password
           </p>
         </div>
 
@@ -51,7 +51,7 @@ export default function LoginPage() {
           {error && <div role="alert" className="alert alert-error">{error}</div>}
 
           <div>
-            <label htmlFor="login-email" className="field-label">Login Email</label>
+            <label htmlFor="login-email" className="field-label">Email</label>
             <div style={{ position: 'relative' }}>
               <Mail size={17} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
               <input
@@ -60,7 +60,7 @@ export default function LoginPage() {
                 type="email"
                 required
                 autoComplete="username"
-                placeholder="you@company.com"
+                placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 style={{ paddingLeft: '2.5rem' }}
@@ -69,7 +69,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label htmlFor="login-password" className="field-label">Login Password</label>
+            <label htmlFor="login-password" className="field-label">Password</label>
             <div style={{ position: 'relative' }}>
               <KeyRound size={17} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
               <input
@@ -78,7 +78,7 @@ export default function LoginPage() {
                 type="password"
                 required
                 autoComplete="current-password"
-                placeholder="Enter your password"
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 style={{ paddingLeft: '2.5rem' }}
@@ -88,7 +88,7 @@ export default function LoginPage() {
 
           <button type="submit" disabled={busy} className="btn btn-primary btn-lg" style={{ marginTop: '0.35rem', width: '100%' }}>
             <ArrowRight size={18} />
-            {busy ? 'Signing in...' : 'Sign In to Portal'}
+            {busy ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
       </div>

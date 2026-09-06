@@ -33,8 +33,8 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
   const hasFilters = selectedStatus !== 'ALL' || searchQuery.trim();
 
   const emptyTitle = useMemo(() => {
-    if (hasFilters) return 'No subject files match your filter search.';
-    return 'No subject files in the registry yet.';
+    if (hasFilters) return 'No files match this search.';
+    return 'No files yet.';
   }, [hasFilters]);
 
   return (
@@ -48,13 +48,13 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
             <option value="ALL">All Statuses</option>
             <option value="DEPT_HEAD_REVIEW">In Department Review</option>
             <option value="CEO_REVIEW">In CEO Review</option>
-            <option value="APPROVED">Fully Approved</option>
+            <option value="APPROVED">Approved</option>
             <option value="RETURNED">Returned</option>
           </select>
           <input
             type="search"
             aria-label="Search files"
-            placeholder="Search..."
+            placeholder="Search"
             className="field-control"
             style={{ width: 200 }}
             value={searchQuery}
@@ -68,15 +68,15 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
 
       <div className="surface-card" style={{ overflow: 'hidden' }}>
         {loading ? (
-          <Spinner label="Loading file registry..." />
+          <Spinner label="Loading files..." />
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>File Reference No</th>
-                  <th>Subject Details</th>
-                  <th>Current Status</th>
+                  <th>File No</th>
+                  <th>Subject</th>
+                  <th>Status</th>
                   <th style={{ textAlign: 'right' }}>Action</th>
                 </tr>
               </thead>
@@ -87,7 +87,7 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
                       <EmptyState
                         icon={Inbox}
                         title={emptyTitle}
-                        hint={hasFilters ? 'Try a different department, status, or search term.' : 'Create a new file to start an approval trail.'}
+                        hint={hasFilters ? 'Try a different status or search term.' : 'Use Create New File to add one.'}
                       />
                     </td>
                   </tr>
@@ -98,7 +98,7 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
                       <td>
                         <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{file.subject}</div>
                         <div style={{ fontSize: '0.76rem', color: 'var(--text-light)', marginTop: '0.2rem' }}>
-                          Raised by {file.creator?.name} ({file.creator?.departmentName})
+                          Created by {file.creator?.name} ({file.creator?.departmentName})
                           {file.createdAt ? ` · ${formatDate(file.createdAt)}` : ''}
                         </div>
                       </td>
