@@ -93,6 +93,7 @@ export const api = {
     },
     decide: (id, { decision, approvalId, comments }) =>
       request(`/files/${id}/approvals`, { method: 'POST', body: { decision, approvalId, comments } }),
+    removeAttachment: (fileId, attachmentId) => request(`/files/${fileId}/attachments/${attachmentId}`, { method: 'DELETE' }),
   },
   audit: {
     list: (params = {}) => {

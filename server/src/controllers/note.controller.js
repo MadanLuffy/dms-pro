@@ -147,7 +147,12 @@ export async function getNoteThread(req, res, next) {
     const { id: fileId, noteId } = req.params;
     const file = await prisma.subjectFile.findUnique({
       where: { id: fileId },
-      select: fileAccessSelect,
+      select: {
+        ...fileAccessSelect,
+        status: true,
+        creator: { select: { id: true, name: true } },
+        approvalMatrix: { select: { status: true, gate: true } },
+      },
     });
     if (!file) return res.status(404).json({ error: 'File not found' });
     if (!canAccessFile(req.user, file)) {
@@ -184,6 +189,7 @@ export async function getNoteThread(req, res, next) {
       author: { id: n.author?.id, name: n.author?.name, role: n.author?.role },
       attachments: (n.attachments || []).map((a) => ({
         id: a.id,
+        noteId: n.id,
         filename: a.filename,
         fileUrl: a.fileUrl,
         mimeType: a.mimeType,

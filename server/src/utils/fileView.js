@@ -31,6 +31,7 @@ export const fileAccessSelect = {
 function mapAttachment(att) {
   return {
     id: att.id,
+    noteId: att.noteId || null,
     filename: att.filename,
     fileUrl: att.fileUrl,
     mimeType: att.mimeType,

@@ -9,11 +9,13 @@ import { useToast } from '../components/Toast';
 import { useFiles } from '../context/FilesContext';
 import StatusBadge from '../components/StatusBadge';
 import DocumentPreview from '../components/DocumentPreview';
+import AttachmentChip from '../components/AttachmentChip';
 import Modal from '../components/Modal';
 import Spinner from '../components/Spinner';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { getInitials, formatDate } from '../utils/format';
 import { wrapLocalFiles, toUploadFiles, removePendingFile } from '../utils/pendingFiles';
+import { areAttachmentsLocked, canDeleteAttachment, noteAuthorForAttachment } from '../utils/attachments';
 
 function nestNoteTree(notes = []) {
   if (!notes.length) return [];
@@ -32,7 +34,7 @@ function countNotes(notes = []) {
   return notes.reduce((n, note) => n + 1 + countNotes(note.replies || []), 0);
 }
 
-function ReplyList({ replies, incomingAttachments, setActiveAttIndex, onReply }) {
+function ReplyList({ replies, incomingAttachments, setActiveAttIndex, onReply, canDeleteAttachmentFn, deletingAttId, onDeleteAttachment }) {
   if (!replies?.length) return null;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginLeft: '1.4rem', paddingLeft: '1.1rem', borderLeft: '3px solid var(--border-accent)' }}>
@@ -50,9 +52,17 @@ function ReplyList({ replies, incomingAttachments, setActiveAttIndex, onReply })
           {(r.attachments || []).length > 0 && (
             <div className="chip-group">
               {r.attachments.map((att) => (
-                <button key={att.id} type="button" className="chip" onClick={(e) => { e.stopPropagation(); const gi = incomingAttachments.findIndex((a) => a.id === att.id); if (gi >= 0) setActiveAttIndex(gi); }}>
-                  <Paperclip size={11} /> {att.filename}
-                </button>
+                <AttachmentChip
+                  key={att.id}
+                  attachment={att}
+                  canDelete={Boolean(canDeleteAttachmentFn?.(att, r.author?.id))}
+                  deleting={deletingAttId === att.id}
+                  onSelect={() => {
+                    const gi = incomingAttachments.findIndex((a) => a.id === att.id);
+                    if (gi >= 0) setActiveAttIndex(gi);
+                  }}
+                  onDelete={onDeleteAttachment}
+                />
               ))}
             </div>
           )}
@@ -61,7 +71,7 @@ function ReplyList({ replies, incomingAttachments, setActiveAttIndex, onReply })
               <MessageSquareReply size={13} /> Reply
             </button>
           </div>
-          <ReplyList replies={r.replies} incomingAttachments={incomingAttachments} setActiveAttIndex={setActiveAttIndex} onReply={onReply} />
+          <ReplyList replies={r.replies} incomingAttachments={incomingAttachments} setActiveAttIndex={setActiveAttIndex} onReply={onReply} canDeleteAttachmentFn={canDeleteAttachmentFn} deletingAttId={deletingAttId} onDeleteAttachment={onDeleteAttachment} />
         </div>
       ))}
     </div>
@@ -102,6 +112,7 @@ export default function FileDetailPage() {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [exportBusy, setExportBusy] = useState('');
+  const [deletingAttId, setDeletingAttId] = useState('');
 
   const fileInputRef = useRef(null);
   const replyFileInputRef = useRef(null);
@@ -139,9 +150,11 @@ export default function FileDetailPage() {
     };
     socket.on(EVENT_NAMES.NOTE_ADDED, reload);
     socket.on(EVENT_NAMES.NOTE_REPLY, reload);
+    socket.on(EVENT_NAMES.ATTACHMENT_REMOVED, reload);
     return () => {
       socket.off(EVENT_NAMES.NOTE_ADDED, reload);
       socket.off(EVENT_NAMES.NOTE_REPLY, reload);
+      socket.off(EVENT_NAMES.ATTACHMENT_REMOVED, reload);
     };
   }, [load, id]);
 
@@ -165,7 +178,26 @@ export default function FileDetailPage() {
   const isCreator = file?.creator?.id === user?.id;
   const canResubmit = isCreator && file?.status === 'RETURNED';
   const canManageFile = isCreator;
+  const attachmentsLocked = areAttachmentsLocked(file);
   const higherOfficers = users.filter((u) => ['DEPT_HEAD', 'CEO'].includes(u.role));
+
+  const canDeleteAtt = (att, noteAuthorId) => canDeleteAttachment(user, file, att, noteAuthorId || noteAuthorForAttachment(file, att));
+
+  const handleDeleteAttachment = async (att) => {
+    if (!att?.id) return;
+    if (!window.confirm(`Remove “${att.filename}” from this note? Other attachments stay.`)) return;
+    setDeletingAttId(att.id);
+    try {
+      await api.files.removeAttachment(id, att.id);
+      toast('Attachment removed', 'success');
+      await load({ silent: true });
+      await refreshFile(id);
+    } catch (err) {
+      toast(err.message || 'Could not remove attachment', 'error');
+    } finally {
+      setDeletingAttId('');
+    }
+  };
 
   const recipientValue = (o) => `${o.name} (${o.role.replace(/_/g, ' ')} - ${o.departmentName || o.deptId})`;
 
@@ -476,11 +508,19 @@ export default function FileDetailPage() {
                     <div style={{ fontSize: '0.86rem', color: 'var(--text-main)', lineHeight: 1.6, whiteSpace: 'pre-wrap', background: 'var(--bg-subtle)', padding: '0.75rem 1rem', borderRadius: 10 }}>{note.content}</div>
 
                     {noteAtts.length > 0 && (
-                      <div className="chip-group">
+                      <div className="chip-group" onClick={(e) => e.stopPropagation()}>
                         {noteAtts.map((att) => (
-                          <button key={att.id} type="button" className="chip" onClick={(e) => { e.stopPropagation(); const gi = incomingAttachments.findIndex((a) => a.id === att.id); if (gi >= 0) setActiveAttIndex(gi); }}>
-                            <Paperclip size={12} /> {att.filename}
-                          </button>
+                          <AttachmentChip
+                            key={att.id}
+                            attachment={att}
+                            canDelete={canDeleteAtt(att, note.author?.id)}
+                            deleting={deletingAttId === att.id}
+                            onSelect={() => {
+                              const gi = incomingAttachments.findIndex((a) => a.id === att.id);
+                              if (gi >= 0) setActiveAttIndex(gi);
+                            }}
+                            onDelete={handleDeleteAttachment}
+                          />
                         ))}
                       </div>
                     )}
@@ -501,6 +541,9 @@ export default function FileDetailPage() {
                         incomingAttachments={incomingAttachments}
                         setActiveAttIndex={setActiveAttIndex}
                         onReply={openReply}
+                        canDeleteAttachmentFn={canDeleteAtt}
+                        deletingAttId={deletingAttId}
+                        onDeleteAttachment={handleDeleteAttachment}
                       />
                     )}
                   </div>
@@ -513,20 +556,35 @@ export default function FileDetailPage() {
         <div className="surface-card" style={{ padding: '1.15rem', minHeight: 700 }}>
           <div style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.85rem' }}>
             <h2 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0 }}>Document Canvas ({incomingAttachments.length} files)</h2>
+            {attachmentsLocked && incomingAttachments.length > 0 && (
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', margin: '0.35rem 0 0' }}>
+                Attachments are locked because a department head or CEO has already approved.
+              </p>
+            )}
             <div className="chip-group" style={{ marginTop: '0.75rem' }}>
               {incomingAttachments.length === 0 && <span style={{ fontSize: '0.78rem', color: 'var(--text-light)' }}>No documents attached yet.</span>}
               {incomingAttachments.map((att, idx) => (
-                <button key={att.id} type="button" className={`chip ${activeAttIndex === idx ? 'is-active' : ''}`} onClick={() => setActiveAttIndex(idx)}>
-                  <Paperclip size={13} />
-                  <span style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.filename}</span>
-                </button>
+                <AttachmentChip
+                  key={att.id}
+                  attachment={att}
+                  active={activeAttIndex === idx}
+                  canDelete={canDeleteAtt(att)}
+                  deleting={deletingAttId === att.id}
+                  onSelect={() => setActiveAttIndex(idx)}
+                  onDelete={handleDeleteAttachment}
+                />
               ))}
             </div>
           </div>
 
           <div className="preview-shell">
             <ErrorBoundary>
-              <DocumentPreview attachment={activeAttachment} />
+              <DocumentPreview
+                attachment={activeAttachment}
+                canDelete={canDeleteAtt(activeAttachment)}
+                deleting={activeAttachment ? deletingAttId === activeAttachment.id : false}
+                onDelete={handleDeleteAttachment}
+              />
             </ErrorBoundary>
           </div>
 

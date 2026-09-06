@@ -1,12 +1,10 @@
-import fs from 'fs';
-import path from 'path';
 import { webcrypto } from 'crypto';
 import { prisma } from '../lib/prisma.js';
 import { createAuditLog } from '../utils/audit.js';
 import { emitToUser } from '../sockets/index.js';
 import { emitToFileAudience, emitToFileParticipants } from '../utils/fileAudience.js';
 import { contains, parsePagination } from '../utils/query.js';
-import { UPLOAD_DIR } from '../middleware/upload.js';
+import { unlinkUploadByUrl } from '../utils/diskFile.js';
 import {
   FILE_STATUS,
   APPROVAL_STATUS,
@@ -337,11 +335,7 @@ export async function deleteFile(req, res, next) {
     ]);
 
     for (const att of attachments) {
-      const filename = path.posix.basename(att.fileUrl || '');
-      if (!filename) continue;
-      const full = path.resolve(UPLOAD_DIR, filename);
-      if (!full.startsWith(path.resolve(UPLOAD_DIR) + path.sep)) continue;
-      fs.unlink(full, () => {});
+      unlinkUploadByUrl(att.fileUrl);
     }
 
     await createAuditLog({

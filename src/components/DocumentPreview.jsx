@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ZoomIn, ZoomOut, RotateCw, FileText, Table, Download, Loader2, AlertTriangle } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCw, FileText, Table, Download, Loader2, AlertTriangle, Trash2 } from 'lucide-react';
 import { fetchAttachment } from '../lib/api';
 import { formatBytes } from '../utils/format';
 
@@ -14,7 +14,7 @@ const typeFromMime = (attachment) => {
   return 'other';
 };
 
-export default function DocumentPreview({ attachment }) {
+export default function DocumentPreview({ attachment, canDelete = false, onDelete, deleting = false }) {
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
   const [docxHtml, setDocxHtml] = useState(null);
@@ -156,6 +156,18 @@ export default function DocumentPreview({ attachment }) {
           <button type="button" onClick={handleDownload} className="btn btn-secondary btn-sm" aria-label="Download">
             <Download size={14} />
           </button>
+          {canDelete && (
+            <button
+              type="button"
+              className="btn btn-danger btn-sm"
+              disabled={deleting}
+              aria-label="Remove attachment"
+              title="Remove this attachment"
+              onClick={() => onDelete?.(attachment)}
+            >
+              {deleting ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}
+            </button>
+          )}
         </div>
       </div>
 

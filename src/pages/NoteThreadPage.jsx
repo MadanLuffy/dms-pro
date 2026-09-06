@@ -4,9 +4,12 @@ import { ArrowLeft, Clock, CornerDownRight, Loader2, MessageSquareReply, Papercl
 import { api } from '../lib/api';
 import { EVENT_NAMES } from '../lib/events';
 import { connectSocket, getSocket } from '../lib/socket';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import Spinner from '../components/Spinner';
+import AttachmentChip from '../components/AttachmentChip';
 import { getInitials, formatDate } from '../utils/format';
+import { canDeleteAttachment } from '../utils/attachments';
 
 const roleLabel = (role = '') => role.replace(/_/g, ' ');
 
@@ -14,6 +17,7 @@ export default function NoteThreadPage() {
   const { id, noteId } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const { user } = useAuth();
 
   const [file, setFile] = useState(null);
   const [root, setRoot] = useState(null);
@@ -28,6 +32,7 @@ export default function NoteThreadPage() {
   const [replyAttachments, setReplyAttachments] = useState([]);
   const [busy, setBusy] = useState(false);
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [deletingAttId, setDeletingAttId] = useState('');
 
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) {
@@ -63,9 +68,11 @@ export default function NoteThreadPage() {
     };
     socket.on(EVENT_NAMES.NOTE_ADDED, reload);
     socket.on(EVENT_NAMES.NOTE_REPLY, reload);
+    socket.on(EVENT_NAMES.ATTACHMENT_REMOVED, reload);
     return () => {
       socket.off(EVENT_NAMES.NOTE_ADDED, reload);
       socket.off(EVENT_NAMES.NOTE_REPLY, reload);
+      socket.off(EVENT_NAMES.ATTACHMENT_REMOVED, reload);
     };
   }, [load, id]);
 
@@ -117,6 +124,21 @@ export default function NoteThreadPage() {
     }
   };
 
+  const handleDeleteAttachment = async (att) => {
+    if (!att?.id) return;
+    if (!window.confirm(`Remove “${att.filename}” from this note? Other attachments stay.`)) return;
+    setDeletingAttId(att.id);
+    try {
+      await api.files.removeAttachment(id, att.id);
+      toast('Attachment removed', 'success');
+      await load({ silent: true });
+    } catch (err) {
+      toast(err.message || 'Could not remove attachment', 'error');
+    } finally {
+      setDeletingAttId('');
+    }
+  };
+
   const addFiles = (e) => {
     const files = [...(e.target.files || [])];
     setReplyAttachments((prev) => [...prev, ...files].slice(0, 5));
@@ -160,11 +182,15 @@ export default function NoteThreadPage() {
           <div style={{ fontSize: '0.86rem', color: 'var(--text-main)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{node.content}</div>
 
           {node.attachments?.length > 0 && (
-            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+            <div className="chip-group">
               {node.attachments.map((att) => (
-                <span key={att.id} style={{ fontSize: '0.7rem', padding: '0.22rem 0.6rem', borderRadius: 20, border: '1px solid var(--border-strong)', background: 'var(--bg-surface)', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                  <Paperclip size={11} /> {att.filename}
-                </span>
+                <AttachmentChip
+                  key={att.id}
+                  attachment={att}
+                  canDelete={canDeleteAttachment(user, file, att, node.author?.id)}
+                  deleting={deletingAttId === att.id}
+                  onDelete={handleDeleteAttachment}
+                />
               ))}
             </div>
           )}
