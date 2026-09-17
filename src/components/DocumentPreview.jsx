@@ -138,19 +138,16 @@ export default function DocumentPreview({ attachment, canDelete = false, onDelet
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'transparent', overflow: 'hidden' }}>
       <div className="preview-toolbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0 }}>
-          {type === 'pdf' && <FileText size={17} style={{ color: 'var(--danger)', flexShrink: 0 }} />}
-          {type === 'docx' && <FileText size={17} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
-          {(type === 'xlsx' || type === 'csv') && <Table size={17} style={{ color: 'var(--success)', flexShrink: 0 }} />}
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachment.filename}</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>{formatBytes(attachment.sizeBytes)} · {type.toUpperCase()}</div>
-          </div>
+        <div className="preview-toolbar-file" title={`${attachment.filename} · ${formatBytes(attachment.sizeBytes)} · ${type.toUpperCase()}`}>
+          {type === 'pdf' && <FileText size={15} style={{ color: 'var(--danger)', flexShrink: 0 }} />}
+          {type === 'docx' && <FileText size={15} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
+          {(type === 'xlsx' || type === 'csv') && <Table size={15} style={{ color: 'var(--success)', flexShrink: 0 }} />}
+          <span className="preview-toolbar-name">{attachment.filename}</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        <div className="preview-toolbar-tools">
           <button type="button" onClick={() => setZoom((z) => Math.max(z - 25, 50))} className="btn btn-secondary btn-sm" aria-label="Zoom out"><ZoomOut size={14} /></button>
-          <span style={{ fontSize: '0.78rem', fontFamily: 'monospace', minWidth: 42, textAlign: 'center', fontWeight: 700 }}>{zoom}%</span>
+          <span className="preview-toolbar-meta">{zoom}%</span>
           <button type="button" onClick={() => setZoom((z) => Math.min(z + 25, 200))} className="btn btn-secondary btn-sm" aria-label="Zoom in"><ZoomIn size={14} /></button>
           <button type="button" onClick={() => setRotation((r) => (r + 90) % 360)} className="btn btn-secondary btn-sm" aria-label="Rotate"><RotateCw size={14} /></button>
           <button type="button" onClick={handleDownload} className="btn btn-secondary btn-sm" aria-label="Download">

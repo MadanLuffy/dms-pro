@@ -37,20 +37,7 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      <div
-        aria-live="polite"
-        role="status"
-        style={{
-          position: 'fixed',
-          top: 64,
-          right: 16,
-          zIndex: 9999,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-          maxWidth: 340,
-        }}
-      >
+      <div className="toast-stack" aria-live="polite" role="status">
         {toasts.map((t) => (
           <div
             key={t.id}

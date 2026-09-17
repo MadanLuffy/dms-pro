@@ -68,7 +68,7 @@ export default function NewFilePage({ onClose }) {
 
           <div>
             <label htmlFor="subject" className="field-label">Subject *</label>
-            <input id="subject" className="field-control" type="text" required placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value.toUpperCase())} style={{ fontWeight: 600, fontSize: '0.95rem' }} />
+            <input id="subject" className="field-control" type="text" required autoFocus placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value.toUpperCase())} style={{ fontWeight: 600, fontSize: '0.95rem' }} />
           </div>
 
           <div>

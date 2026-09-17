@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, KeyRound, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Mail, KeyRound, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { homePath } from '../utils/home';
 import ThemeToggle from '../components/ThemeToggle';
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (user) navigate(homePath(user), { replace: true });
@@ -41,9 +42,9 @@ export default function LoginPage() {
           <div className="brand-orb">
             <ShieldCheck size={26} />
           </div>
-          <h2 style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.015em' }}>Sign in</h2>
-          <p style={{ fontSize: '0.8125rem', color: 'var(--text-light)', marginTop: '0.2rem' }}>
-            Use your office email and password
+          <h2 style={{ fontSize: '1.3rem', fontWeight: 800, letterSpacing: '-0.015em' }}>Sign in</h2>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--text-light)', marginTop: '0.25rem' }}>
+            Document Management
           </p>
         </div>
 
@@ -52,8 +53,8 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="login-email" className="field-label">Email</label>
-            <div style={{ position: 'relative' }}>
-              <Mail size={17} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+            <div className="field-wrap">
+              <Mail size={17} className="field-icon" />
               <input
                 id="login-email"
                 className="field-control"
@@ -63,26 +64,33 @@ export default function LoginPage() {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                style={{ paddingLeft: '2.5rem' }}
               />
             </div>
           </div>
 
           <div>
             <label htmlFor="login-password" className="field-label">Password</label>
-            <div style={{ position: 'relative' }}>
-              <KeyRound size={17} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+            <div className="field-wrap">
+              <KeyRound size={17} className="field-icon" />
               <input
                 id="login-password"
                 className="field-control"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 autoComplete="current-password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingLeft: '2.5rem' }}
+                style={{ paddingRight: '2.4rem' }}
               />
+              <button
+                type="button"
+                className="field-eye"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPassword((v) => !v)}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
 

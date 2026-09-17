@@ -247,23 +247,23 @@ export default function NoteThreadPage() {
   if (loading) return <Spinner label="Loading thread..." />;
 
   return (
-    <div style={{ maxWidth: 980, margin: '0 auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <button onClick={() => navigate(`/files/${id}`)} className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+    <div className="page page-narrow" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <button onClick={() => navigate(`/files/${id}`)} className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start' }}>
         <ArrowLeft size={14} /> Back to File
       </button>
 
       {error && (
-        <div style={{ background: 'var(--danger-light)', border: '1px solid var(--danger)', color: 'var(--danger-deep)', padding: '1rem', borderRadius: 10, fontSize: '0.85rem' }}>
-          {error} — <a href={`/files/${id}`} style={{ color: 'var(--primary-deep)' }}>go back to the file</a>
+        <div role="alert" className="alert alert-error">
+          {error} — <a href={`/files/${id}`}>go back to the file</a>
         </div>
       )}
 
       {file && root && (
         <>
-          <div style={{ background: 'linear-gradient(135deg,#1e3a8a,#2563eb)', borderRadius: 16, padding: '1.25rem 1.5rem', color: '#ffffff' }}>
-            <div style={{ opacity: 0.85, fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Note Thread</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 800, marginTop: '0.2rem' }}>{file.refNo} · {file.subject}</div>
-            <div style={{ fontSize: '0.8rem', opacity: 0.85, marginTop: '0.25rem' }}>{thread.length} message{thread.length === 1 ? '' : 's'} · started by {root.author?.name}</div>
+          <div className="thread-hero">
+            <div className="crumb">Note thread</div>
+            <div style={{ fontSize: '1.05rem', fontWeight: 800, marginTop: '0.15rem' }}>{file.refNo} · {file.subject}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{thread.length} message{thread.length === 1 ? '' : 's'} · started by {root.author?.name}</div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>

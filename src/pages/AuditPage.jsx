@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Shield, Download, Search, Clock, ScrollText } from 'lucide-react';
+import { Download, Search, Clock, ScrollText } from 'lucide-react';
 import { api } from '../lib/api';
 import Spinner from '../components/Spinner';
 import EmptyState from '../components/EmptyState';
@@ -74,21 +74,18 @@ export default function AuditPage() {
   };
 
   return (
-    <div className="page" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+    <div className="page" style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+      <div className="page-head">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Shield size={22} style={{ color: 'var(--primary)' }} />
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Audit log</h2>
-          </div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Record of logins, files, notes, and approvals.</p>
+          <h2>Audit log</h2>
+          <p className="page-kicker">Record of logins, files, notes, and approvals.</p>
         </div>
         <button onClick={exportCSV} className="btn btn-secondary">
           <Download size={16} /> Export CSV
         </button>
       </div>
 
-      <div className="glass-panel" style={{ padding: '0.9rem 1.1rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.85rem' }}>
+      <div className="glass-panel toolbar-row">
         <div className="search-field" style={{ flex: '1 1 240px', maxWidth: 360 }}>
           <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
           <input type="search" aria-label="Search audit logs" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />

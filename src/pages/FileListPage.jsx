@@ -8,7 +8,15 @@ import EmptyState from '../components/EmptyState';
 import PaginationBar from '../components/PaginationBar';
 import { formatDate } from '../utils/format';
 
-export default function FileListPage({ searchQuery = '', onSearchChange }) {
+const STATUS_FILTERS = [
+  { value: 'ALL', label: 'All' },
+  { value: 'DEPT_HEAD_REVIEW', label: 'Department review' },
+  { value: 'CEO_REVIEW', label: 'CEO review' },
+  { value: 'APPROVED', label: 'Approved' },
+  { value: 'RETURNED', label: 'Returned' },
+];
+
+export default function FileListPage({ searchQuery = '' }) {
   const navigate = useNavigate();
   const { files, loading, loadFiles, pagination } = useFiles();
   const [selectedStatus, setSelectedStatus] = useState('ALL');
@@ -38,31 +46,29 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
   }, [hasFilters]);
 
   return (
-    <div className="page" style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
-      <div className="glass-panel" style={{ padding: '1rem 1.2rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <Filter size={16} /> Filter Files
-          </span>
-          <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} aria-label="Filter by status" className="field-control" style={{ width: 'auto' }}>
-            <option value="ALL">All Statuses</option>
-            <option value="DEPT_HEAD_REVIEW">In Department Review</option>
-            <option value="CEO_REVIEW">In CEO Review</option>
-            <option value="APPROVED">Approved</option>
-            <option value="RETURNED">Returned</option>
-          </select>
-          <input
-            type="search"
-            aria-label="Search files"
-            placeholder="Search"
-            className="field-control"
-            style={{ width: 200 }}
-            value={searchQuery}
-            onChange={(e) => onSearchChange?.(e.target.value)}
-          />
+    <div className="page" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="page-head">
+        <div>
+          <h1>Files</h1>
+          <p className="page-kicker">{pagination.total} file{pagination.total === 1 ? '' : 's'}</p>
         </div>
-        <div style={{ fontSize: '0.875rem', color: 'var(--text-light)' }}>
-          Total Files: <strong>{pagination.total}</strong>
+      </div>
+
+      <div className="glass-panel toolbar-row">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <Filter size={14} /> Status
+          </span>
+          {STATUS_FILTERS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              className={`filter-chip ${selectedStatus === opt.value ? 'is-active' : ''}`}
+              onClick={() => setSelectedStatus(opt.value)}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -93,7 +99,12 @@ export default function FileListPage({ searchQuery = '', onSearchChange }) {
                   </tr>
                 ) : (
                   files.map((file) => (
-                    <tr key={file.id} onClick={() => navigate(`/files/${file.id}`)}>
+                    <tr
+                      key={file.id}
+                      onClick={() => navigate(`/files/${file.id}`)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/files/${file.id}`); } }}
+                      tabIndex={0}
+                    >
                       <td className="ref-no">{file.refNo}</td>
                       <td>
                         <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{file.subject}</div>

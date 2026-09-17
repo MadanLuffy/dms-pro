@@ -121,6 +121,7 @@ export default function FileDetailPage() {
   const replyFileInputRef = useRef(null);
   const existingNoteFileRef = useRef(null);
   const attachTargetNoteRef = useRef(null);
+  const menuRef = useRef(null);
   const [attachingNoteId, setAttachingNoteId] = useState('');
 
   const load = useCallback(async ({ silent = false } = {}) => {
@@ -147,6 +148,15 @@ export default function FileDetailPage() {
     api.meta.users().then(({ users: u }) => setUsers(u || [])).catch(() => {});
     api.meta.departments().then(({ departments: d }) => setDepartments(d || [])).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDoc = (e) => {
+      if (!menuRef.current?.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [menuOpen]);
 
   useEffect(() => {
     const socket = getSocket() || connectSocket();
@@ -404,20 +414,20 @@ export default function FileDetailPage() {
           e.target.value = '';
         }}
       />
-      <div className="glass-panel" style={{ padding: '1rem 1.4rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
+      <div className="glass-panel file-hero">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem', minWidth: 0 }}>
           <button onClick={() => navigate('/files')} className="btn btn-secondary btn-sm">
             <ArrowLeft size={16} /> Back to Files
           </button>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: 'var(--text-light)', marginBottom: '0.2rem' }}>
+          <div style={{ minWidth: 0 }}>
+            <div className="crumb">
               <span>Files</span>
               <ChevronRight size={13} />
               <span>{file.creator?.departmentName}</span>
               <ChevronRight size={13} />
               <span className="ref-no">{file.refNo}</span>
             </div>
-            <h1 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>{file.subject}</h1>
+            <h1 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0 }}>{file.subject}</h1>
           </div>
         </div>
 
@@ -441,7 +451,7 @@ export default function FileDetailPage() {
             </button>
           )}
           {canManageFile && (
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative' }} ref={menuRef}>
               <button type="button" className="btn btn-secondary btn-sm" onClick={() => setMenuOpen((o) => !o)} aria-label="File actions">
                 <MoreHorizontal size={16} />
               </button>
@@ -460,8 +470,8 @@ export default function FileDetailPage() {
       <div className="file-detail-grid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
           <div className="surface-card" style={{ padding: '1.25rem 1.4rem' }}>
-            <h2 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '0.85rem' }}>File details</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem 1rem', fontSize: '0.85rem' }}>
+            <h2 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '0.7rem' }}>File details</h2>
+            <div className="meta-grid">
               <div><span style={{ color: 'var(--text-light)' }}>Created by:</span> <strong>{file.creator?.name}</strong></div>
               <div><span style={{ color: 'var(--text-light)' }}>Created:</span> <strong>{formatDate(file.createdAt)}</strong></div>
             </div>
@@ -599,15 +609,15 @@ export default function FileDetailPage() {
           </div>
         </div>
 
-        <div className="surface-card" style={{ padding: '1.15rem', minHeight: 700 }}>
-          <div style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.85rem' }}>
-            <h2 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0 }}>Attachments ({incomingAttachments.length})</h2>
+        <div className="surface-card" style={{ padding: '0.85rem' }}>
+          <div style={{ marginBottom: '0.65rem' }}>
+            <h2 style={{ fontSize: '0.9rem', fontWeight: 800, margin: 0 }}>Attachments ({incomingAttachments.length})</h2>
             {attachmentsLocked && incomingAttachments.length > 0 && (
               <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', margin: '0.35rem 0 0' }}>
                 Attachments are locked because a department head or CEO has already approved.
               </p>
             )}
-            <div className="chip-group" style={{ marginTop: '0.75rem' }}>
+            <div className="chip-group" style={{ marginTop: '0.45rem' }}>
               {incomingAttachments.length === 0 && <span style={{ fontSize: '0.78rem', color: 'var(--text-light)' }}>No documents attached yet.</span>}
               {incomingAttachments.map((att, idx) => (
                 <AttachmentChip

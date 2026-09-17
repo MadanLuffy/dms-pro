@@ -45,10 +45,12 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main">Skip to content</a>
       <ErrorBoundary>
         {showHeader && <Header onOpenNewFile={onOpenNewFile} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />}
         {newFileOpen && !isAdmin && <NewFilePage onClose={onCloseNewFile} />}
 
+        <main id="main">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route
@@ -63,7 +65,7 @@ export default function App() {
             path="/files"
             element={
               <RoleGate allow={['STAFF', 'DEPT_HEAD', 'CEO']}>
-                <FileListPage searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+                <FileListPage searchQuery={searchQuery} />
               </RoleGate>
             }
           />
@@ -101,6 +103,7 @@ export default function App() {
           />
           <Route path="*" element={<HomeRedirect />} />
         </Routes>
+        </main>
       </ErrorBoundary>
     </div>
   );

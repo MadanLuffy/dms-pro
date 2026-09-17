@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Building2, UserPlus, Loader2, Pencil, Shield } from 'lucide-react';
+import { Building2, UserPlus, Loader2, Pencil } from 'lucide-react';
 import { api } from '../lib/api';
 import { useToast } from '../components/Toast';
 import Spinner from '../components/Spinner';
@@ -114,14 +114,11 @@ export default function AdminPage() {
 
   return (
     <div className="page" style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Shield size={22} style={{ color: 'var(--primary)' }} />
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Administration</h1>
+      <div className="page-head">
+        <div>
+          <h1>Administration</h1>
+          <p className="page-kicker">Create departments and user accounts. File review stays with department heads and the CEO.</p>
         </div>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: 4 }}>
-          Create departments and user accounts. File review and approval stay with department heads and the CEO.
-        </p>
       </div>
 
       {error && <div role="alert" className="alert alert-error">{error}</div>}
