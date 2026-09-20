@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { Send, User, X, Loader2, Paperclip, Trash2 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useToast } from '../components/Toast';
+import { useAuth } from '../context/AuthContext';
 import { wrapLocalFiles, toUploadFiles, removePendingFile } from '../utils/pendingFiles';
 
 export default function NewFilePage({ onClose }) {
   const navigate = useNavigate();
   const toast = useToast();
+  const { user } = useAuth();
   const [subject, setSubject] = useState('');
   const [assignedOfficerId, setAssignedOfficerId] = useState('');
+  const [initialNoteTitle, setInitialNoteTitle] = useState('');
   const [initialNote, setInitialNote] = useState('');
   const [attachments, setAttachments] = useState([]);
   const [users, setUsers] = useState([]);
@@ -21,7 +24,13 @@ export default function NewFilePage({ onClose }) {
     api.meta.users().then(({ users: u }) => setUsers(u || [])).catch(() => {});
   }, []);
 
-  const higherOfficers = users.filter((u) => ['DEPT_HEAD', 'CEO'].includes(u.role));
+  const availableOfficers = users.filter((u) => {
+    if (u.id === user?.id) return false;
+    if (user?.role === 'STAFF') {
+      return u.role === 'DEPT_HEAD';
+    }
+    return ['DEPT_HEAD', 'CEO'].includes(u.role);
+  });
 
   const close = () => (onClose ? onClose() : navigate('/files'));
 
@@ -34,10 +43,17 @@ export default function NewFilePage({ onClose }) {
     }
     setBusy(true);
     try {
+      const fullInitialNote = initialNoteTitle.trim()
+        ? (initialNote.trim() ? `Title: ${initialNoteTitle.trim()}\n\n${initialNote.trim()}` : `Title: ${initialNoteTitle.trim()}`)
+        : initialNote.trim();
+
+      const myDeptHead = users.find((u) => u.role === 'DEPT_HEAD' && u.deptId === user?.deptId);
+      const targetOfficerId = user?.role === 'STAFF' ? (myDeptHead?.id || null) : (assignedOfficerId || null);
+
       const { file } = await api.files.create({
         subject: subject.trim().toUpperCase(),
-        assignedOfficerId: assignedOfficerId || null,
-        initialNote: initialNote.trim(),
+        assignedOfficerId: targetOfficerId,
+        initialNote: fullInitialNote,
         attachments: toUploadFiles(attachments),
       });
       toast(`File ${file.refNo} created`, 'success');
@@ -71,21 +87,37 @@ export default function NewFilePage({ onClose }) {
             <input id="subject" className="field-control" type="text" required autoFocus placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value.toUpperCase())} style={{ fontWeight: 600, fontSize: '0.95rem' }} />
           </div>
 
+          {user?.role !== 'STAFF' && (
+            <div>
+              <label htmlFor="recipient" className="field-label">
+                <User size={15} style={{ display: 'inline', marginRight: 4, verticalAlign: '-2px', color: 'var(--primary)' }} />
+                Assign To (optional)
+              </label>
+              <select id="recipient" className="field-control" value={assignedOfficerId} onChange={(e) => setAssignedOfficerId(e.target.value)} style={{ fontWeight: 600 }}>
+                <option value="">— Not assigned —</option>
+                {availableOfficers.map((o) => (
+                  <option key={o.id} value={o.id}>{o.name} ({o.role.replace(/_/g, ' ')} - {o.departmentName || o.deptId})</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div>
-            <label htmlFor="recipient" className="field-label">
-              <User size={15} style={{ display: 'inline', marginRight: 4, verticalAlign: '-2px', color: 'var(--primary)' }} /> Assign To (optional)
-            </label>
-            <select id="recipient" className="field-control" value={assignedOfficerId} onChange={(e) => setAssignedOfficerId(e.target.value)} style={{ fontWeight: 600 }}>
-              <option value="">— Not assigned —</option>
-              {higherOfficers.map((o) => (
-                <option key={o.id} value={o.id}>{o.name} ({o.role.replace(/_/g, ' ')} - {o.departmentName || o.deptId})</option>
-              ))}
-            </select>
+            <label htmlFor="initial-note-title" className="field-label">Initial Note Title (optional)</label>
+            <input
+              id="initial-note-title"
+              className="field-control"
+              type="text"
+              placeholder="e.g. Clearance & Approval Proposal"
+              value={initialNoteTitle}
+              onChange={(e) => setInitialNoteTitle(e.target.value)}
+              style={{ fontWeight: 600 }}
+            />
           </div>
 
           <div>
-            <label htmlFor="initial-note" className="field-label">Opening note (optional)</label>
-            <textarea id="initial-note" className="field-control" rows={3} placeholder="Note" value={initialNote} onChange={(e) => setInitialNote(e.target.value)} />
+            <label htmlFor="initial-note" className="field-label">Initial Note Content (optional)</label>
+            <textarea id="initial-note" className="field-control" rows={3} placeholder="Write the note details..." value={initialNote} onChange={(e) => setInitialNote(e.target.value)} />
           </div>
 
           <div>

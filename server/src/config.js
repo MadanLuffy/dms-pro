@@ -1,5 +1,5 @@
 export function getClientOrigins() {
-  const configured = process.env.CLIENT_ORIGIN;
+  const configured = process.env.CLIENT_ORIGIN ? process.env.CLIENT_ORIGIN.replace(/\/+$/, '') : null;
   if (process.env.NODE_ENV === 'production') {
     const list = [configured].filter(Boolean);
     if (!list.length) {
@@ -9,5 +9,5 @@ export function getClientOrigins() {
     }
     return list;
   }
-  return [...new Set([configured || 'http://localhost:5188', 'http://localhost:5188', 'http://127.0.0.1:5188'])];
+  return [...new Set([configured, 'http://localhost:5188', 'http://127.0.0.1:5188'].filter(Boolean))];
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, KeyRound, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { Mail, KeyRound, ArrowRight, Milk, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { homePath } from '../utils/home';
 import ThemeToggle from '../components/ThemeToggle';
@@ -34,17 +34,22 @@ export default function LoginPage() {
 
   return (
     <div className="login-screen">
+      <img src="/assets/milk-glass.png" alt="" aria-hidden="true" className="login-milk" />
       <div style={{ position: 'absolute', top: 18, right: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <ThemeToggle />
       </div>
       <div className="login-card">
         <div style={{ textAlign: 'center' }}>
+          <img src="/assets/kmf-logo.png" alt="KMF Nandini" className="login-logo" />
           <div className="brand-orb">
-            <ShieldCheck size={26} />
+            <Milk size={24} />
           </div>
           <h2 style={{ fontSize: '1.3rem', fontWeight: 800, letterSpacing: '-0.015em' }}>Sign in</h2>
           <p style={{ fontSize: '0.8125rem', color: 'var(--text-light)', marginTop: '0.25rem' }}>
-            Document Management
+            KMF Nandini · Official Document Noting System
+          </p>
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-light)', marginTop: '0.5rem' }}>
+            Pure &amp; Fresh — trusted by millions across Karnataka since 1974
           </p>
         </div>
 

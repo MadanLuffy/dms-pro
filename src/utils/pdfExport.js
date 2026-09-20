@@ -14,6 +14,17 @@ function fmt(value) {
   return d.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
+function parseNoteContent(rawContent = '') {
+  const str = String(rawContent || '');
+  const titleMatch = str.match(/^Title:\s*(.+?)(?:\r?\n\r?\n|$)/i);
+  if (titleMatch) {
+    const title = titleMatch[1].trim();
+    const body = str.slice(titleMatch[0].length).trim();
+    return { title, body: body || title };
+  }
+  return { title: null, body: str };
+}
+
 export async function generateFilePDFReport(file) {
   const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import('html2canvas'), import('jspdf')]);
 
@@ -48,11 +59,15 @@ export async function generateFilePDFReport(file) {
 
   const noteBlocks = notes
     .map(
-      (n) => `
+      (n) => {
+        const parsed = parseNoteContent(n.content);
+        return `
       <div style="background:#f8fafc;border-left:3px solid #2563eb;padding:8px 12px;margin-bottom:10px;border-radius:4px;">
-        <div style="font-size:11px;font-weight:bold;color:#1e40af;margin-bottom:4px;">Note v${esc(n.version)} — ${esc(n.author)} (${esc(n.time)})</div>
-        <div style="font-size:11px;color:#334155;line-height:1.4;">${esc(n.content)}</div>
-      </div>`
+        <div style="font-size:11px;font-weight:bold;color:#1e40af;margin-bottom:4px;">Note v${esc(n.version)} · ${esc(n.time)}</div>
+        ${parsed.title ? `<div style="font-size:11px;font-weight:700;color:#0f172a;margin-bottom:4px;">${esc(parsed.title)}</div>` : ''}
+        <div style="font-size:11px;color:#334155;line-height:1.4;">${esc(parsed.body)}</div>
+      </div>`;
+      }
     )
     .join('');
 
@@ -69,8 +84,8 @@ export async function generateFilePDFReport(file) {
   reportElement.innerHTML = `
     <div style="border-bottom:3px solid #1e40af;padding-bottom:15px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;">
       <div>
-        <h1 style="color:#1e3a8a;font-size:24px;margin:0;font-weight:800;">Document Management</h1>
-        <p style="margin:4px 0 0 0;font-size:11px;color:#475569;">File report</p>
+        <h1 style="color:#1e3a8a;font-size:24px;margin:0;font-weight:800;">KMF Nandini</h1>
+        <p style="margin:4px 0 0 0;font-size:11px;color:#475569;">Karnataka Milk Federation · Official Noting System — File report</p>
       </div>
       <div style="text-align:right;">
         <span style="background:#dbeafe;color:#1e40af;padding:4px 10px;font-weight:bold;border-radius:4px;font-size:12px;">FILE REPORT</span>
@@ -115,7 +130,7 @@ export async function generateFilePDFReport(file) {
 
     <div style="margin-top:30px;padding-top:15px;border-top:1px solid #cbd5e1;font-size:10px;color:#64748b;display:flex;justify-content:space-between;">
       <span>Compiled on: ${esc(new Date().toLocaleString())}</span>
-      <span>Document Management</span>
+      <span>KMF Nandini · Document Management</span>
     </div>
   `;
 
@@ -144,7 +159,8 @@ export async function generateFilePDFReport(file) {
       heightLeft -= pageHeight - margin * 2;
     }
 
-    pdf.save(`File_Report_${file.refNo}.pdf`);
+    const safeRefNo = String(file.refNo || 'report').replace(/[<>:"/\\|?*]+/g, '_');
+    pdf.save(`File_Report_${safeRefNo}.pdf`);
   } catch (err) {
     console.error('PDF Export Error:', err);
     throw new Error('PDF export failed');
@@ -153,24 +169,7 @@ export async function generateFilePDFReport(file) {
   }
 }
 
-function flattenNotes(notes, depth = 0) {
-  const list = [];
-  for (const n of notes || []) {
-    list.push({
-      depth,
-      version: n.version,
-      author: n.author?.name || 'Unknown',
-      role: n.author?.role ? String(n.author.role).replace(/_/g, ' ') : '',
-      time: fmt(n.createdAt),
-      content: n.content || '',
-      attachments: (n.attachments || []).map((a) => a.filename).filter(Boolean),
-    });
-    if (n.replies?.length) list.push(...flattenNotes(n.replies, depth + 1));
-  }
-  return list;
-}
-
-/** Notes-only PDF: subject title + every note/reply on the file. */
+/** Notes-only PDF: each note (#1, #2, ...) followed by all of its replies together. */
 export async function generateNotesSheetPDF(file) {
   const { jsPDF } = await import('jspdf');
   const pdf = new jsPDF('p', 'mm', 'a4');
@@ -178,20 +177,20 @@ export async function generateNotesSheetPDF(file) {
   const pageHeight = 297;
   const margin = 18;
   const maxWidth = pageWidth - margin * 2;
-  let y = margin;
+  const state = { y: margin };
 
   const ensureSpace = (needed) => {
-    if (y + needed <= pageHeight - margin) return;
+    if (state.y + needed <= pageHeight - margin) return;
     pdf.addPage();
-    y = margin;
+    state.y = margin;
     pdf.setFont('helvetica', 'italic');
     pdf.setFontSize(9);
     pdf.setTextColor(100, 116, 139);
     const cont = pdf.splitTextToSize(`${file.subject} (continued)`, maxWidth);
-    pdf.text(cont, margin, y);
-    y += cont.length * 4.5 + 6;
+    pdf.text(cont, margin, state.y);
+    state.y += cont.length * 4.5 + 6;
     pdf.setDrawColor(226, 232, 240);
-    pdf.line(margin, y - 3, pageWidth - margin, y - 3);
+    pdf.line(margin, state.y - 3, pageWidth - margin, state.y - 3);
     pdf.setTextColor(15, 23, 42);
   };
 
@@ -199,69 +198,130 @@ export async function generateNotesSheetPDF(file) {
   pdf.setFontSize(16);
   pdf.setTextColor(15, 23, 42);
   const titleLines = pdf.splitTextToSize(file.subject || 'Untitled subject', maxWidth);
-  pdf.text(titleLines, margin, y);
-  y += titleLines.length * 7 + 8;
+  pdf.text(titleLines, margin, state.y);
+  state.y += titleLines.length * 7 + 4;
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(9.5);
+  pdf.setTextColor(71, 85, 105);
+  pdf.text(`Official Noting Sheet · ${file.refNo || ''}`, margin, state.y);
+  state.y += 6;
 
   pdf.setDrawColor(37, 99, 235);
   pdf.setLineWidth(0.6);
-  pdf.line(margin, y, pageWidth - margin, y);
-  y += 10;
+  pdf.line(margin, state.y, pageWidth - margin, state.y);
+  state.y += 8;
 
-  const notes = flattenNotes(file.notes || []);
-  if (!notes.length) {
+  const rootNotes = (file.notes || []).filter((n) => !n.parentId);
+
+  if (!rootNotes.length) {
     pdf.setFont('helvetica', 'italic');
     pdf.setFontSize(11);
     pdf.setTextColor(100, 116, 139);
-    pdf.text('No notes have been recorded on this file.', margin, y);
+    pdf.text('No notes have been recorded on this file.', margin, state.y);
   } else {
-    notes.forEach((note, index) => {
-      const indent = Math.min(note.depth, 4) * 6;
-      const width = maxWidth - indent;
+    const renderNote = (note, depth, label) => {
+      const indent = Math.min(depth, 4) * 6;
       const x = margin + indent;
-      const label = [
-        note.depth > 0 ? 'Reply' : `Note v${note.version || index + 1}`,
-        note.author,
-        note.role ? `(${note.role})` : '',
-        '·',
-        note.time,
-      ]
-        .filter(Boolean)
-        .join(' ');
-      const headerLines = pdf.splitTextToSize(label, width);
-      const bodyLines = pdf.splitTextToSize(note.content || '(empty note)', width);
-      const attLine = note.attachments.length
-        ? pdf.splitTextToSize(`Attachments: ${note.attachments.join(', ')}`, width)
+      const width = maxWidth - indent;
+
+      const author = note.author?.name || 'Unknown';
+      const role = (note.author?.role || '').replace(/_/g, ' ');
+      const headerLine = pdf.splitTextToSize(
+        `${label} · ${author}${role ? ` (${role})` : ''} · ${fmt(note.createdAt)}`,
+        width
+      );
+      const parsed = parseNoteContent(note.content);
+      const parsedTitleLines = parsed.title ? pdf.splitTextToSize(`Title: ${parsed.title}`, width) : [];
+      const bodyLines = pdf.splitTextToSize(parsed.body || '(empty note)', width);
+      const sentToLine = note.sentTo ? pdf.splitTextToSize(`To: ${note.sentTo}`, width) : [];
+      const attLine = (note.attachments || []).length
+        ? pdf.splitTextToSize(`Attachments: ${note.attachments.map((a) => a.filename).join(', ')}`, width)
         : [];
-      const blockH = headerLines.length * 4.5 + bodyLines.length * 5 + attLine.length * 4.2 + 10;
+
+      const blockH =
+        2 +
+        headerLine.length * 4.5 +
+        (parsedTitleLines.length ? parsedTitleLines.length * 4.8 + 2 : 0) +
+        bodyLines.length * 5 +
+        (sentToLine.length ? sentToLine.length * 4.4 + 2 : 0) +
+        (attLine.length ? attLine.length * 4.2 : 0) +
+        8;
 
       ensureSpace(blockH);
 
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(10);
       pdf.setTextColor(30, 64, 175);
-      pdf.text(headerLines, x, y);
-      y += headerLines.length * 4.5 + 2;
+      pdf.text(headerLine, x, state.y);
+      state.y += headerLine.length * 4.5 + 2;
+
+      if (parsedTitleLines.length) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10.5);
+        pdf.setTextColor(15, 23, 42);
+        pdf.text(parsedTitleLines, x, state.y);
+        state.y += parsedTitleLines.length * 4.8 + 2;
+      }
 
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(11);
       pdf.setTextColor(15, 23, 42);
-      pdf.text(bodyLines, x, y);
-      y += bodyLines.length * 5 + 2;
+      pdf.text(bodyLines, x, state.y);
+      state.y += bodyLines.length * 5 + 2;
+
+      if (sentToLine.length) {
+        pdf.setFont('helvetica', 'italic');
+        pdf.setFontSize(9);
+        pdf.setTextColor(71, 85, 105);
+        pdf.text(sentToLine, x, state.y);
+        state.y += sentToLine.length * 4.4 + 2;
+      }
 
       if (attLine.length) {
         pdf.setFont('helvetica', 'italic');
         pdf.setFontSize(9);
         pdf.setTextColor(71, 85, 105);
-        pdf.text(attLine, x, y);
-        y += attLine.length * 4.2;
+        pdf.text(attLine, x, state.y);
+        state.y += attLine.length * 4.2;
       }
 
-      y += 6;
+      state.y += 3;
       pdf.setDrawColor(241, 245, 249);
       pdf.setLineWidth(0.3);
-      pdf.line(x, y - 3, pageWidth - margin, y - 3);
+      pdf.line(x, state.y, pageWidth - margin, state.y);
+      state.y += 4;
+    };
+
+    const renderReplies = (replies, depth) => {
+      for (const r of replies || []) {
+        renderNote(r, depth, 'Reply');
+        if (r.replies?.length) renderReplies(r.replies, depth + 1);
+      }
+    };
+
+    rootNotes.forEach((note, index) => {
+      renderNote(note, 0, `Note #${index + 1}`);
+      renderReplies(note.replies || [], 1);
+
+      if (index < rootNotes.length - 1) {
+        state.y += 5;
+        ensureSpace(2);
+        pdf.setDrawColor(203, 213, 225);
+        pdf.setLineWidth(0.4);
+        pdf.line(margin, state.y, pageWidth - margin, state.y);
+        state.y += 5;
+      }
     });
   }
+
+  state.y = Math.max(state.y, margin + 6);
+  ensureSpace(8);
+  state.y = pageHeight - margin;
+  pdf.setFont('helvetica', 'italic');
+  pdf.setFontSize(9);
+  pdf.setTextColor(100, 116, 139);
+  pdf.text(`KMF Nandini · Karnataka Milk Federation · ${file.refNo || ''}`, margin, state.y);
 
   const safeName = String(file.subject || file.refNo || 'notes')
     .replace(/[<>:"/\\|?*]+/g, ' ')

@@ -63,18 +63,19 @@ async function runDecision(tx, req, approvalId, decision, comments) {
     },
   });
 
-  const remaining = await tx.approvalMatrix.count({
+  const pendingCount = await tx.approvalMatrix.count({
     where: { fileId: approval.fileId, status: APPROVAL_STATUS.PENDING },
+  });
+  const pendingDeptGates = await tx.approvalMatrix.count({
+    where: { fileId: approval.fileId, gate: GATE.DEPT, status: APPROVAL_STATUS.PENDING },
   });
   const isCeoGate = approval.gate === GATE.CEO;
 
   let newStatus = FILE_STATUS.DEPT_HEAD_REVIEW;
-  if (isCeoGate) newStatus = FILE_STATUS.APPROVED;
-  else if (remaining === 1) {
-    const ceoGate = await tx.approvalMatrix.findFirst({
-      where: { fileId: approval.fileId, gate: GATE.CEO },
-    });
-    if (ceoGate && ceoGate.id !== approval.id) newStatus = FILE_STATUS.CEO_REVIEW;
+  if (pendingCount === 0 || isCeoGate) {
+    newStatus = FILE_STATUS.APPROVED;
+  } else if (pendingDeptGates === 0) {
+    newStatus = FILE_STATUS.CEO_REVIEW;
   }
 
   const file = await tx.subjectFile.update({

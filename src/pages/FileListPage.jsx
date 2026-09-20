@@ -47,13 +47,6 @@ export default function FileListPage({ searchQuery = '' }) {
 
   return (
     <div className="page" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div className="page-head">
-        <div>
-          <h1>Files</h1>
-          <p className="page-kicker">{pagination.total} file{pagination.total === 1 ? '' : 's'}</p>
-        </div>
-      </div>
-
       <div className="glass-panel toolbar-row">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>

@@ -49,6 +49,8 @@ function toPublicNote(n) {
     createdAt: n.createdAt,
     author: { id: n.author?.id, name: n.author?.name, role: n.author?.role },
     attachments: (n.attachments || []).map(mapAttachment),
+    seenByHead: Boolean(n.seenByHead),
+    seenAt: n.seenAt || null,
     replies: [],
   };
 }

@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from './lib/prisma.js';
 
+import crypto from 'crypto';
+
 const DEPARTMENTS = [
   { id: 'FINANCE', name: 'Finance' },
   { id: 'HR', name: 'Human Resources' },
@@ -18,16 +20,23 @@ export async function ensureBootstrap() {
     });
   }
 
-  const userCount = await prisma.user.count();
-  if (userCount > 0) {
-    console.log(`[dms-server] Database has ${userCount} user(s); skipping bootstrap admin.`);
+  const superadminCount = await prisma.user.count({ where: { role: 'SUPERADMIN' } });
+  if (superadminCount > 0) {
+    console.log(`[dms-server] Database has ${superadminCount} SUPERADMIN user(s); skipping bootstrap admin.`);
     return;
   }
 
   const email = (process.env.BOOTSTRAP_ADMIN_EMAIL || 'admin@skandasoft.com').trim().toLowerCase();
-  const password = process.env.BOOTSTRAP_ADMIN_PASSWORD || 'Password@123';
   const name = process.env.BOOTSTRAP_ADMIN_NAME || 'Admin';
-  const usedDefaults = !process.env.BOOTSTRAP_ADMIN_EMAIL || !process.env.BOOTSTRAP_ADMIN_PASSWORD;
+  const hasEnvCreds = !!process.env.BOOTSTRAP_ADMIN_EMAIL && !!process.env.BOOTSTRAP_ADMIN_PASSWORD;
+
+  let password;
+  if (hasEnvCreds) {
+    password = process.env.BOOTSTRAP_ADMIN_PASSWORD;
+  } else {
+    password = crypto.randomBytes(6).toString('hex');
+    console.log(`[dms-server] No BOOTSTRAP_ADMIN_PASSWORD set. Generated random password: ${password}`);
+  }
 
   await prisma.user.create({
     data: {
@@ -39,9 +48,5 @@ export async function ensureBootstrap() {
     },
   });
 
-  if (usedDefaults) {
-    console.log(`[dms-server] Created first SUPERADMIN ${email} with the default demo password. Set BOOTSTRAP_ADMIN_EMAIL and BOOTSTRAP_ADMIN_PASSWORD on the host to use your own login.`);
-  } else {
-    console.log(`[dms-server] Created first SUPERADMIN ${email}`);
-  }
+  console.log(`[dms-server] Created first SUPERADMIN ${email}`);
 }

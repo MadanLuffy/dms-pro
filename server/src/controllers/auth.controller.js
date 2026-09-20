@@ -30,6 +30,7 @@ export async function login(req, res, next) {
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
+    req.ipAddress = req.ip?.replace('::ffff:', '') || 'unknown';
     const token = signToken({ sub: user.id, email: user.email });
     setAuthCookie(res, token);
     await createAuditLog({

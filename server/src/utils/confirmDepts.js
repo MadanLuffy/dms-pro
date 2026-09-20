@@ -67,7 +67,7 @@ export async function ensureConfirmationDepts(db, { fileId, deptIds, currentStat
   }
 
   let status = currentStatus;
-  if (status !== FILE_STATUS.APPROVED && status !== FILE_STATUS.CEO_REVIEW && status !== FILE_STATUS.RETURNED) {
+  if (addedDeptIds.length > 0 || (status !== FILE_STATUS.APPROVED && status !== FILE_STATUS.CEO_REVIEW && status !== FILE_STATUS.RETURNED)) {
     status = FILE_STATUS.DEPT_HEAD_REVIEW;
     if (status !== currentStatus) {
       await db.subjectFile.update({ where: { id: fileId }, data: { status } });

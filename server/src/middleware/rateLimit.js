@@ -37,17 +37,17 @@ export function rateLimit({ windowMs, max, name = 'api', keyFn } = {}) {
 export const loginRateLimit = rateLimit({
   name: 'login',
   windowMs: process.env.NODE_ENV === 'production' ? 15 * 60 * 1000 : 60 * 1000,
-  max: process.env.NODE_ENV === 'production' ? 10 : 30,
+  max: process.env.NODE_ENV === 'production' ? 20 : 30,
 });
 
 export const apiRateLimit = rateLimit({
   name: 'api',
   windowMs: 60 * 1000,
-  max: process.env.NODE_ENV === 'production' ? 300 : 1200,
+  max: process.env.NODE_ENV === 'production' ? 900 : 1200,
 });
 
 export const uploadRateLimit = rateLimit({
   name: 'upload',
   windowMs: 60 * 1000,
-  max: process.env.NODE_ENV === 'production' ? 40 : 120,
+  max: process.env.NODE_ENV === 'production' ? 80 : 120,
 });

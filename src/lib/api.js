@@ -100,6 +100,7 @@ export const api = {
     decide: (id, { decision, approvalId, comments }) =>
       request(`/files/${id}/approvals`, { method: 'POST', body: { decision, approvalId, comments } }),
     removeAttachment: (fileId, attachmentId) => request(`/files/${fileId}/attachments/${attachmentId}`, { method: 'DELETE' }),
+    deleteNote: (fileId, noteId) => request(`/files/${fileId}/notes/${noteId}`, { method: 'DELETE' }),
   },
   audit: {
     list: (params = {}) => {

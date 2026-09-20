@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FileText, Plus, Search, Shield, Folder, LogOut, ChevronDown, Settings } from 'lucide-react';
+import { FileText, Plus, Search, Shield, LogOut, ChevronDown, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getInitials } from '../utils/format';
 import { homePath, isAdmin } from '../utils/home';
@@ -40,13 +40,11 @@ export default function Header({ onOpenNewFile, searchQuery, setSearchQuery }) {
     <header className="app-header glass-header">
       <div className="header-inner header-bar">
         <button type="button" className="brand" onClick={() => navigate(homePath(user))}>
-          <span className="brand-mark"><Folder size={18} /></span>
+          <img src="/assets/kmf-logo.png" alt="KMF Nandini" className="brand-logo" />
           <span>
-            <div style={{ fontSize: '0.95rem', fontWeight: 800, lineHeight: 1.2, fontFamily: 'var(--font-heading)', letterSpacing: '-0.015em' }}>
-              Document Management
-            </div>
+            <div className="brand-title">KMF Nandini</div>
             <p style={{ fontSize: '0.68rem', color: 'var(--text-light)' }}>
-              {user.departmentName || user.deptId}
+              Official Noting · {user.departmentName || user.deptId}
             </p>
           </span>
         </button>

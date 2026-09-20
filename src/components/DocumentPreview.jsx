@@ -72,9 +72,12 @@ export default function DocumentPreview({ attachment, canDelete = false, onDelet
     try {
       const res = await fetchAttachment(attachment.fileUrl);
       const buf = await res.arrayBuffer();
-      const [mammoth, DOMPurify] = await Promise.all([import('mammoth'), import('dompurify')]);
+      const [mammothMod, domPurifyMod] = await Promise.all([import('mammoth'), import('dompurify')]);
+      const mammoth = mammothMod.default || mammothMod;
+      const DOMPurify = domPurifyMod.default || domPurifyMod;
       const result = await mammoth.convertToHtml({ arrayBuffer: buf });
-      setDocxHtml(DOMPurify.default.sanitize(result.value));
+      const sanitizeFn = DOMPurify.sanitize || DOMPurify.default?.sanitize;
+      setDocxHtml(sanitizeFn ? sanitizeFn(result.value) : result.value);
     } catch (err) {
       setGridError(err.message || 'DOCX conversion failed');
     } finally {

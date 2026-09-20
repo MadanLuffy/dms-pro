@@ -17,6 +17,17 @@ const emptyUser = {
   deptId: '',
 };
 
+function roleText(role = '') {
+  return String(role).replace(/_/g, ' ');
+}
+
+function roleClass(role) {
+  if (role === 'SUPERADMIN') return 'admin-role admin-role-admin';
+  if (role === 'CEO') return 'admin-role admin-role-ceo';
+  if (role === 'DEPT_HEAD') return 'admin-role admin-role-head';
+  return 'admin-role admin-role-staff';
+}
+
 export default function AdminPage() {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
@@ -78,7 +89,7 @@ export default function AdminPage() {
     setUserBusy(true);
     try {
       const { user } = await api.admin.createUser(userForm);
-      toast(`${user.name} added as ${user.role.replace(/_/g, ' ')}`, 'success');
+      toast(`${user.name} added as ${roleText(user.role)}`, 'success');
       setUserForm({ ...emptyUser, deptId: defaultDeptId });
       await load();
     } catch (err) {
@@ -113,7 +124,7 @@ export default function AdminPage() {
   if (loading) return <Spinner label="Loading administration..." />;
 
   return (
-    <div className="page" style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+    <div className="page admin-page">
       <div className="page-head">
         <div>
           <h1>Administration</h1>
@@ -123,9 +134,9 @@ export default function AdminPage() {
 
       {error && <div role="alert" className="alert alert-error">{error}</div>}
 
-      <div className="admin-grid">
-        <form className="glass-panel admin-card" onSubmit={handleCreateDept}>
-          <h2><Building2 size={18} /> New Department</h2>
+      <div className="surface-card admin-create">
+        <form className="admin-create-col" onSubmit={handleCreateDept}>
+          <h2><Building2 size={14} /> New Department</h2>
           <label htmlFor="dept-id" className="field-label">Department ID</label>
           <input
             id="dept-id"
@@ -146,24 +157,32 @@ export default function AdminPage() {
           />
           <p className="field-hint">ID is auto-derived from the name if left blank (A–Z, 0–9, underscore).</p>
           <button type="submit" className="btn btn-primary" disabled={deptBusy}>
-            {deptBusy ? <Loader2 size={16} className="spin" /> : <Building2 size={16} />}
+            {deptBusy ? <Loader2 size={15} className="spin" /> : <Building2 size={15} />}
             {deptBusy ? 'Saving...' : 'Create Department'}
           </button>
         </form>
 
-        <form className="glass-panel admin-card" onSubmit={handleCreateUser}>
-          <h2><UserPlus size={18} /> New User</h2>
-          <label htmlFor="user-name" className="field-label">Full Name</label>
-          <input id="user-name" className="field-control" value={userForm.name} onChange={(e) => setUserForm((f) => ({ ...f, name: e.target.value }))} required />
-          <label htmlFor="user-email" className="field-label">Email</label>
-          <input id="user-email" type="email" className="field-control" value={userForm.email} onChange={(e) => setUserForm((f) => ({ ...f, email: e.target.value }))} required />
-          <label htmlFor="user-password" className="field-label">Temporary Password</label>
-          <input id="user-password" type="password" className="field-control" value={userForm.password} onChange={(e) => setUserForm((f) => ({ ...f, password: e.target.value }))} minLength={8} required />
-          <div className="form-grid-2">
+        <div className="admin-create-split" aria-hidden="true" />
+
+        <form className="admin-create-col admin-create-user" onSubmit={handleCreateUser}>
+          <h2><UserPlus size={14} /> New User</h2>
+          <div className="admin-user-fields">
+            <div>
+              <label htmlFor="user-name" className="field-label">Full Name</label>
+              <input id="user-name" className="field-control" value={userForm.name} onChange={(e) => setUserForm((f) => ({ ...f, name: e.target.value }))} required />
+            </div>
+            <div>
+              <label htmlFor="user-email" className="field-label">Email</label>
+              <input id="user-email" type="email" className="field-control" value={userForm.email} onChange={(e) => setUserForm((f) => ({ ...f, email: e.target.value }))} required />
+            </div>
+            <div>
+              <label htmlFor="user-password" className="field-label">Temporary Password</label>
+              <input id="user-password" type="password" className="field-control" value={userForm.password} onChange={(e) => setUserForm((f) => ({ ...f, password: e.target.value }))} minLength={8} required />
+            </div>
             <div>
               <label htmlFor="user-role" className="field-label">Role</label>
               <select id="user-role" className="field-control" value={userForm.role} onChange={(e) => setUserForm((f) => ({ ...f, role: e.target.value }))}>
-                {ROLES.map((r) => <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>)}
+                {ROLES.map((r) => <option key={r} value={r}>{roleText(r)}</option>)}
               </select>
             </div>
             <div>
@@ -173,86 +192,98 @@ export default function AdminPage() {
                 {departments.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.id})</option>)}
               </select>
             </div>
+            <div className="admin-user-submit">
+              <button type="submit" className="btn btn-primary" disabled={userBusy || !departments.length}>
+                {userBusy ? <Loader2 size={15} className="spin" /> : <UserPlus size={15} />}
+                {userBusy ? 'Saving...' : 'Create User'}
+              </button>
+            </div>
           </div>
-          <button type="submit" className="btn btn-success" disabled={userBusy || !departments.length}>
-            {userBusy ? <Loader2 size={16} className="spin" /> : <UserPlus size={16} />}
-            {userBusy ? 'Saving...' : 'Create User'}
-          </button>
         </form>
       </div>
 
-      <div className="surface-card" style={{ overflow: 'hidden' }}>
-        <div className="admin-section-head">Departments ({departments.length})</div>
-        {departments.length === 0 ? (
-          <EmptyState title="No departments yet" hint="Create a department before adding users." />
-        ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Users</th>
-              </tr>
-            </thead>
-            <tbody>
-              {departments.map((d) => (
-                <tr key={d.id} style={{ cursor: 'default' }}>
-                  <td className="ref-no">{d.id}</td>
-                  <td>{d.name}</td>
-                  <td>{d.userCount}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      <div className="surface-card" style={{ overflow: 'hidden' }}>
-        <div className="admin-section-head">Users ({users.length})</div>
-        {users.length === 0 ? (
-          <EmptyState title="No users yet" hint="Create a staff, department head, or CEO account." />
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Department</th>
-                  <th>Created</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u) => (
-                  <tr key={u.id} style={{ cursor: 'default' }}>
-                    <td style={{ fontWeight: 700 }}>{u.name}</td>
-                    <td>{u.email}</td>
-                    <td><span className="badge badge-submitted">{u.role.replace(/_/g, ' ')}</span></td>
-                    <td>{u.departmentName} ({u.deptId})</td>
-                    <td style={{ fontSize: '0.78rem', color: 'var(--text-light)' }}>{formatDate(u.createdAt)}</td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditUser({ ...u, password: '' })}>
-                        <Pencil size={13} /> Edit
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className="admin-directory">
+        <div className="surface-card admin-panel">
+          <div className="admin-section-head">
+            Departments
+            <span>{departments.length}</span>
           </div>
-        )}
+          {departments.length === 0 ? (
+            <EmptyState title="No departments yet" hint="Create a department before adding users." />
+          ) : (
+            <div className="admin-table-wrap">
+              <table className="data-table admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Users</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {departments.map((d) => (
+                    <tr key={d.id}>
+                      <td className="ref-no">{d.id}</td>
+                      <td>{d.name}</td>
+                      <td>{d.userCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="surface-card admin-panel">
+          <div className="admin-section-head">
+            Users
+            <span>{users.length}</span>
+          </div>
+          {users.length === 0 ? (
+            <EmptyState title="No users yet" hint="Create a staff, department head, or CEO account." />
+          ) : (
+            <div className="admin-table-wrap">
+              <table className="data-table admin-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Created</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((u) => (
+                    <tr key={u.id}>
+                      <td className="admin-user-name">{u.name}</td>
+                      <td className="admin-user-email">{u.email}</td>
+                      <td><span className={roleClass(u.role)}>{roleText(u.role)}</span></td>
+                      <td>{u.departmentName} <span className="admin-dept-id">({u.deptId})</span></td>
+                      <td className="admin-user-date">{formatDate(u.createdAt)}</td>
+                      <td className="admin-user-action">
+                        <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditUser({ ...u, password: '' })}>
+                          <Pencil size={13} /> Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
       <Modal open={!!editUser} onClose={() => setEditUser(null)} title="Edit user">
         {editUser && (
-          <form onSubmit={handleUpdateUser} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          <form onSubmit={handleUpdateUser} className="admin-edit-form">
             <label className="field-label" htmlFor="edit-name">Name</label>
             <input id="edit-name" className="field-control" value={editUser.name} onChange={(e) => setEditUser((u) => ({ ...u, name: e.target.value }))} required />
             <label className="field-label" htmlFor="edit-role">Role</label>
             <select id="edit-role" className="field-control" value={editUser.role} onChange={(e) => setEditUser((u) => ({ ...u, role: e.target.value }))}>
-              {ROLES.map((r) => <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>)}
+              {ROLES.map((r) => <option key={r} value={r}>{roleText(r)}</option>)}
             </select>
             <label className="field-label" htmlFor="edit-dept">Department</label>
             <select id="edit-dept" className="field-control" value={editUser.deptId} onChange={(e) => setEditUser((u) => ({ ...u, deptId: e.target.value }))}>
@@ -260,7 +291,7 @@ export default function AdminPage() {
             </select>
             <label className="field-label" htmlFor="edit-password">Reset password (optional)</label>
             <input id="edit-password" type="password" className="field-control" value={editUser.password} onChange={(e) => setEditUser((u) => ({ ...u, password: e.target.value }))} minLength={8} placeholder="Leave blank to keep current password" />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem' }}>
+            <div className="admin-edit-actions">
               <button type="button" className="btn btn-secondary" onClick={() => setEditUser(null)}>Cancel</button>
               <button type="submit" className="btn btn-primary" disabled={editBusy}>
                 {editBusy ? 'Saving...' : 'Save changes'}

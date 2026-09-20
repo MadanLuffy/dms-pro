@@ -93,7 +93,7 @@ export async function listFiles(req, res, next) {
 
 export async function getFile(req, res, next) {
   try {
-    const file = await prisma.subjectFile.findUnique({
+    let file = await prisma.subjectFile.findUnique({
       where: { id: req.params.id },
       include: fileInclude,
     });
@@ -101,6 +101,35 @@ export async function getFile(req, res, next) {
     if (!canAccessFile(req.user, file)) {
       return res.status(403).json({ error: 'Forbidden' });
     }
+
+    if (['DEPT_HEAD', 'CEO'].includes(req.user.role)) {
+      const unseen = await prisma.note.count({
+        where: {
+          fileId: file.id,
+          seenByHead: false,
+          authorId: { not: req.user.id },
+        },
+      });
+      if (unseen > 0) {
+        await prisma.note.updateMany({
+          where: {
+            fileId: file.id,
+            seenByHead: false,
+            authorId: { not: req.user.id },
+          },
+          data: {
+            seenByHead: true,
+            seenAt: new Date(),
+          },
+        });
+        file = await prisma.subjectFile.findUnique({
+          where: { id: req.params.id },
+          include: fileInclude,
+        });
+        await emitToFileParticipants(file, 'notes:seen', { fileId: file.id, seenBy: req.user.name });
+      }
+    }
+
     res.json({ file: toPublicFile(file) });
   } catch (err) {
     next(err);
@@ -117,7 +146,19 @@ export async function createFile(req, res, next) {
     if (assignedOfficerId === 'null' || assignedOfficerId === 'undefined' || assignedOfficerId === '') {
       assignedOfficerId = null;
     }
+    let deptHead = null;
+    if (req.user.role === 'STAFF' && req.user.deptId) {
+      deptHead = await prisma.user.findFirst({
+        where: { role: 'DEPT_HEAD', deptId: req.user.deptId },
+      });
+      if (deptHead && !assignedOfficerId) {
+        assignedOfficerId = deptHead.id;
+      }
+    }
     const deptIds = parseIdList(targetDeptIds);
+    if (!deptIds.length && req.user.deptId) {
+      deptIds.push(req.user.deptId);
+    }
     if (!subject || typeof subject !== 'string') {
       return res.status(400).json({ error: 'Subject is required' });
     }
@@ -190,7 +231,7 @@ export async function createFile(req, res, next) {
                 version: 1,
                 order: 1,
                 content: initialNote,
-                sentTo: deptIds.join(', ') || '',
+                sentTo: (req.user.role === 'STAFF' && deptHead) ? `${deptHead.name} (DEPT HEAD)` : (deptIds.join(', ') || ''),
                 authorId: req.user.id,
               },
             }
@@ -273,7 +314,10 @@ export async function updateFile(req, res, next) {
         where: { fileId: existing.id, status: APPROVAL_STATUS.RETURNED },
       });
       if (!returnedGate) return res.status(400).json({ error: 'No returned approval found to resubmit' });
-      await prisma.approvalMatrix.update({ where: { id: returnedGate.id }, data: { status: APPROVAL_STATUS.PENDING, reviewedBy: null, comments: null, timestamp: null } });
+      await prisma.approvalMatrix.updateMany({
+        where: { fileId: existing.id, status: APPROVAL_STATUS.RETURNED },
+        data: { status: APPROVAL_STATUS.PENDING, reviewedBy: null, comments: null, timestamp: null },
+      });
       data.status = returnedGate.gate === GATE.CEO ? FILE_STATUS.CEO_REVIEW : FILE_STATUS.DEPT_HEAD_REVIEW;
       await createAuditLog({
         userId: req.user.id,

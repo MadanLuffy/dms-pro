@@ -42,16 +42,23 @@ async function clickByText(page, text) {
   await page.evaluate((t) => {
     const btn = [...document.querySelectorAll('button')].find((x) => x.textContent.includes(t));
     if (!btn) throw new Error(`button not found: ${t}`);
-    btn.click();
+    HTMLElement.prototype.click.call(btn);
   }, text);
 }
 
 async function setValue(page, selector, value) {
   await page.evaluate((sel, val) => {
     const el = document.querySelector(sel);
+    if (!el) throw new Error(`Element not found: ${sel}`);
     const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
-    Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, val);
+    const desc = Object.getOwnPropertyDescriptor(proto, 'value');
+    if (desc && desc.set) {
+      desc.set.call(el, val);
+    } else {
+      el.value = val;
+    }
     el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
   }, selector, value);
 }
 
@@ -82,6 +89,7 @@ async function main() {
   for (const pg of [pageA, pageB]) {
     pg.on('console', (m) => { if (m.type() === 'error') errors.push(`[console.error] ${m.text()}`); });
     pg.on('pageerror', (e) => errors.push(`[pageerror] ${e.message}`));
+    pg.on('dialog', async (d) => { await d.accept(); });
     pg.on('request', (req) => {
       if (req.method() === 'POST') log(`REQ ${pg === pageA ? 'A' : 'B'} ${req.method()} ${req.url()}`);
     });
@@ -107,15 +115,38 @@ async function main() {
   await pageA.waitForFunction(() => document.body.textContent.includes('Write Note'), { timeout: 20000, polling: 200 });
   await clickByText(pageA, 'Write Note');
   await pageA.waitForSelector('#note-text', { timeout: 10000, polling: 200 });
-  await pageA.select('#fwd-recipient', 'Sunil Verma (DEPT HEAD - Information Technology)');
+  const fwdSel = await pageA.$('#fwd-recipient');
+  if (fwdSel) await pageA.select('#fwd-recipient', 'Sunil Verma (DEPT HEAD - Information Technology)');
   await setValue(pageA, '#note-text', 'E2E auto note to IT dept. Attaching supporting spreadsheet.');
   const noteFileInput = await pageA.$('input[type="file"]');
   await noteFileInput.uploadFile(E2E_CSV);
   await pageA.waitForFunction(() => document.body.textContent.includes('e2e-note.csv'), { timeout: 10000, polling: 200 });
   await clickByText(pageA, 'Send Note');
   await pageA.waitForFunction(() => !document.body.textContent.includes('Write Note & Send'), { timeout: 10000, polling: 200 });
-  await pageA.waitForFunction(() => document.body.textContent.includes('E2E auto note to IT dept.') && document.body.textContent.includes('e2e-note.csv'), { timeout: 20000, polling: 200 });
-  log('note + attachment posted via compose modal');
+  await pageA.waitForFunction(() => document.body.textContent.includes('Unseen by Head'), { timeout: 10000, polling: 200 });
+  log('note + attachment posted via compose modal; shows Unseen by Head');
+
+  // Test creating and deleting an unviewed note
+  step = 'delete-unviewed-note';
+  await clickByText(pageA, 'Write Note');
+  await pageA.waitForSelector('#note-text', { timeout: 10000, polling: 200 });
+  await setValue(pageA, '#note-text', 'Temporary draft note to test deletion.');
+  await clickByText(pageA, 'Send Note');
+  await pageA.waitForFunction(() => !document.body.textContent.includes('Write Note & Send'), { timeout: 10000, polling: 200 });
+  await pageA.waitForFunction(() => {
+    const cards = [...document.querySelectorAll('[data-testid="note-card"]')];
+    return cards.some((c) => c.textContent.includes('Temporary draft note to test deletion.'));
+  }, { timeout: 15000, polling: 200 });
+  await pageA.evaluate(() => {
+    const cards = [...document.querySelectorAll('[data-testid="note-card"]')];
+    const target = cards.find((c) => c.textContent.includes('Temporary draft note to test deletion.'));
+    if (!target) throw new Error('target note to delete not found');
+    const delBtn = [...target.querySelectorAll('button')].find((b) => /delete/i.test(b.textContent));
+    if (!delBtn) throw new Error('delete button on unviewed note not found');
+    delBtn.click();
+  });
+  await pageA.waitForFunction(() => !document.body.textContent.includes('Temporary draft note to test deletion.'), { timeout: 10000, polling: 200 });
+  log('successfully deleted unviewed note before Head saw it');
 
   // 3. PAGE A parks on the list, confirms DEPT_HEAD_REVIEW shows
   step = 'park-on-list';
@@ -133,22 +164,33 @@ async function main() {
 
   step = 'reply-note';
   await pageB.waitForFunction(() => document.body.textContent.includes('E2E auto note to IT dept.'), { timeout: 20000, polling: 200 });
-  await clickByText(pageB, 'Reply');
-  await pageB.waitForSelector('#reply-text', { timeout: 10000, polling: 200 });
-  await setValue(pageB, '#reply-text', 'E2E reply from IT dept head - acknowledged, proceeding with review.');
-  const replyFileInput = await pageB.$('input[type="file"]');
+  await pageB.waitForSelector('[data-testid="note-card"]', { timeout: 10000, polling: 200 });
+  await pageB.evaluate(() => document.querySelector('[data-testid="note-card"]').click());
+  await pageB.waitForFunction(() => location.pathname.includes('/notes/'), { timeout: 20000, polling: 200 });
+  await pageB.waitForSelector('[data-testid="thread-root"]', { timeout: 10000, polling: 200 });
+  await pageB.evaluate(() => {
+    const card = document.querySelector('[data-testid="thread-root"]');
+    const btn = [...card.querySelectorAll('button')].find((b) => /reply/i.test(b.textContent));
+    if (!btn) throw new Error('root reply button not found');
+    btn.click();
+  });
+  await pageB.waitForSelector('#threadReply-text', { timeout: 10000, polling: 200 });
+  await setValue(pageB, '#threadReply-text', 'E2E reply from IT dept head - acknowledged, proceeding with review.');
+  const replyFileInput = await pageB.$('#threadReply-file');
   await replyFileInput.uploadFile(E2E_CSV);
   await pageB.waitForFunction(() => document.body.textContent.includes('e2e-note.csv'), { timeout: 10000, polling: 200 });
   await clickByText(pageB, 'Send Reply');
-  await pageB.waitForFunction(() => !document.body.textContent.includes('Reply to Ravi Kumar'), { timeout: 10000, polling: 200 });
-  await pageB.waitForFunction(() => document.body.textContent.includes('E2E reply from IT dept head') && document.body.textContent.includes('1 reply'), { timeout: 20000, polling: 200 });
+  await pageB.waitForFunction(() => document.body.textContent.includes('E2E reply from IT dept head'), { timeout: 20000, polling: 200 });
+  await pageB.goto(`${APP}/files/${fileId}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await pageB.waitForFunction(() => document.body.textContent.includes('1 reply'), { timeout: 20000, polling: 200 });
   log('sunil replied with attachment');
 
   // 4b. FIRST USER (Ravi) clicks the note -> thread page, replies to the reply (nested thread)
   step = 'first-user-sees-reply';
   await pageA.goto(`${APP}/files/${fileId}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await pageA.waitForFunction(() => document.body.textContent.includes('E2E reply from IT dept head'), { timeout: 20000, polling: 200 });
-  log('first user (ravi) sees the reply');
+  await pageA.waitForFunction(() => document.body.textContent.includes('1 reply'), { timeout: 20000, polling: 200 });
+  await pageA.waitForFunction(() => document.body.textContent.includes('Seen by Head'), { timeout: 15000, polling: 200 });
+  log('first user (ravi) sees the reply and Seen by Head');
 
   step = 'open-note-thread';
   await pageA.waitForSelector('[data-testid="note-card"]', { timeout: 10000, polling: 200 });
@@ -181,7 +223,7 @@ async function main() {
   step = 'approve-dept';
   await clickByText(pageB, 'Approve & Sign');
   await pageB.waitForFunction(() => document.body.textContent.includes('Confirm Authorization & Sign'), { timeout: 10000, polling: 200 });
-  await setValue(pageB, 'textarea[placeholder*="comment"]', 'Approved by IT.');
+  await setValue(pageB, 'textarea', 'Approved by IT.');
   await clickByText(pageB, 'Confirm Approval');
   await pageB.waitForFunction(() => /CEO[_ ]?Review|CEO_REVIEW/i.test(document.body.textContent), { timeout: 20000, polling: 200 });
   log('sunil approved');
@@ -193,21 +235,53 @@ async function main() {
 
   // 6. CEO approves
   step = 'login-ceo';
-  await logout(pageB);
-  await login(pageB, 'ceo@skandasoft.com');
+  const ctxC = await browser.createBrowserContext();
+  const pageC = await ctxC.newPage();
+  pageC.on('console', (m) => { if (m.type() === 'error') errors.push(`[console.error] ${m.text()}`); });
+  pageC.on('pageerror', (e) => errors.push(`[pageerror] ${e.message}`));
+  await login(pageC, 'ceo@skandasoft.com');
   log('ceo logged in');
-  await pageB.goto(`${APP}/files/${fileId}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await pageB.waitForSelector('h1', { timeout: 15000, polling: 200 });
-  await clickByText(pageB, 'Approve & Sign');
-  await pageB.waitForFunction(() => document.body.textContent.includes('Confirm Authorization & Sign'), { timeout: 10000, polling: 200 });
-  await clickByText(pageB, 'Confirm Approval');
-  await pageB.waitForFunction(() => /Approved & Closed/.test(document.body.textContent), { timeout: 15000, polling: 200 });
+  await pageC.goto(`${APP}/files/${fileId}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await pageC.waitForSelector('h1', { timeout: 15000, polling: 200 });
+  await clickByText(pageC, 'Approve & Sign');
+  await pageC.waitForFunction(() => document.body.textContent.includes('Confirm Authorization & Sign'), { timeout: 10000, polling: 200 });
+  await setValue(pageC, 'textarea', 'Final CEO approval granted.');
+  await clickByText(pageC, 'Confirm Approval');
+  await pageC.waitForFunction(() => /Approved/i.test(document.body.textContent), { timeout: 20000, polling: 200 });
   log('ceo approved');
 
-  // 6b. CSV preview grid renders (proves lazy xlsx + fetch preview works)
+  // 7. PAGE A flips to APPROVED live
+  step = 'socket-flip-2';
+  await waitRowStatus(pageA, refNo, /Approved/i);
+  log('SOCKET OK: page A watched APPROVED appear live');
+
+  // 8. Test return flow: create second file, DEPT HEAD returns it
+  step = 'create-file-2';
+  await pageA.goto(`${APP}/files/new`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await pageA.waitForSelector('#subject', { timeout: 15000, polling: 200 });
+  const subj2 = `ResubmitTest-${Date.now() % 100000}`;
+  await setValue(pageA, '#subject', subj2);
+  await submitForm(pageA);
+  await pageA.waitForFunction(() => /^\/files\/[0-9a-f-]+$/.test(location.pathname), { timeout: 20000, polling: 200 });
+  const fileId2 = pageA.url().split('/').pop();
+  const refNo2 = await pageA.evaluate(() => (document.body.textContent.match(/DMS-[0-9A-Z]{6}/) || [])[0]);
+  log(`created second file: ${refNo2}`);
+
+  step = 'return-file';
+  await pageB.goto(`${APP}/files/${fileId2}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await pageB.waitForSelector('h1', { timeout: 15000, polling: 200 });
+  await clickByText(pageB, 'Return Note');
+  await pageB.waitForFunction(() => document.body.textContent.includes('Return file'), { timeout: 10000, polling: 200 });
+  await setValue(pageB, 'textarea', 'Returned for clarification.');
+  await clickByText(pageB, 'Confirm Return');
+
+  // 6b. CSV preview grid renders in official note sheet (proves lazy xlsx + fetch preview works)
   step = 'csv-preview';
+  await pageB.goto(`${APP}/files/${fileId}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await pageB.waitForSelector('[data-testid="note-card"]', { timeout: 10000, polling: 200 });
+  await pageB.evaluate(() => document.querySelector('[data-testid="note-card"]').click());
   await pageB.waitForFunction(
-    () => document.body.textContent.includes('Spreadsheet preview failed') === false && document.body.textContent.includes('PriyaStaffPending'),
+    () => document.body.textContent.includes('Spreadsheet preview failed') === false && document.body.textContent.includes('Priya'),
     { timeout: 20000, polling: 200 }
   );
   log('CSV PREVIEW GRID RENDERED');

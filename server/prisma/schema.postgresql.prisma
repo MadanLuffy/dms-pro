@@ -87,6 +87,8 @@ model Note {
   content     String
   order       Int
   attachments Attachment[]
+  seenByHead  Boolean      @default(false)
+  seenAt      DateTime?
   createdAt   DateTime     @default(now())
 
   @@index([fileId])
