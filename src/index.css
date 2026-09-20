@@ -1284,29 +1284,6 @@ input:focus {
   padding: 1.6rem 0.5rem;
 }
 
-.note-seen-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  font-size: 0.68rem;
-  font-weight: 600;
-  padding: 0.1rem 0.4rem;
-  border-radius: 4px;
-}
-
-.note-seen-pill.is-unseen {
-  background: var(--warning-light);
-  color: var(--warning-amber);
-}
-
-.note-seen-pill.is-seen {
-  color: var(--text-light);
-}
-
-.note-seen-pill.is-seen svg {
-  color: var(--success);
-}
-
 /* Noting Sheet Page (Dedicated View) */
 .official-notesheet-card {
   background: var(--bg-surface);
@@ -1638,8 +1615,7 @@ input:focus {
   background: var(--border-color);
 }
 
-.admin-create h2,
-.admin-card h2 {
+.admin-create h2 {
   display: flex;
   align-items: center;
   gap: 0.4rem;
