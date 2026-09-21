@@ -84,7 +84,7 @@ export async function generateFilePDFReport(file) {
   reportElement.innerHTML = `
     <div style="border-bottom:3px solid #1e40af;padding-bottom:15px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;">
       <div>
-        <h1 style="color:#1e3a8a;font-size:24px;margin:0;font-weight:800;">KMF Nandini</h1>
+        <h1 style="color:#1e3a8a;font-size:24px;margin:0;font-weight:800;">Document System</h1>
         <p style="margin:4px 0 0 0;font-size:11px;color:#475569;">Karnataka Milk Federation · Official Noting System — File report</p>
       </div>
       <div style="text-align:right;">
@@ -130,7 +130,7 @@ export async function generateFilePDFReport(file) {
 
     <div style="margin-top:30px;padding-top:15px;border-top:1px solid #cbd5e1;font-size:10px;color:#64748b;display:flex;justify-content:space-between;">
       <span>Compiled on: ${esc(new Date().toLocaleString())}</span>
-      <span>KMF Nandini · Document Management</span>
+      <span>Document System</span>
     </div>
   `;
 
@@ -321,7 +321,7 @@ export async function generateNotesSheetPDF(file) {
   pdf.setFont('helvetica', 'italic');
   pdf.setFontSize(9);
   pdf.setTextColor(100, 116, 139);
-  pdf.text(`KMF Nandini · Karnataka Milk Federation · ${file.refNo || ''}`, margin, state.y);
+  pdf.text(`Document System · ${file.refNo || ''}`, margin, state.y);
 
   const safeName = String(file.subject || file.refNo || 'notes')
     .replace(/[<>:"/\\|?*]+/g, ' ')

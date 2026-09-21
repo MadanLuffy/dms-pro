@@ -1,6 +1,6 @@
 /* ============================================================
-   KMF Nandini — Document Management styles
-   Karnataka Milk Federation brand palette · light/dark
+   Document System — styles
+   Office-grade corporate palette · compact type · light/dark
    ============================================================ */
 
 :root {
@@ -255,17 +255,15 @@ a {
   flex-direction: column;
   background:
     radial-gradient(1100px 420px at 12% -8%, var(--primary-soft), transparent 55%),
-    radial-gradient(760px 340px at 100% 0%, rgba(247, 148, 29, 0.08), transparent 50%),
-    linear-gradient(180deg, rgba(244, 248, 251, 0.66), rgba(255, 255, 255, 0.5)),
-    url('/assets/kmf-bg.png') center/cover no-repeat fixed;
+    radial-gradient(760px 340px at 100% 0%, rgba(14, 165, 233, 0.05), transparent 50%),
+    var(--bg-app);
 }
 
 [data-theme='dark'] .app-shell {
   background:
     radial-gradient(1100px 420px at 12% -8%, var(--primary-soft), transparent 55%),
-    radial-gradient(760px 340px at 100% 0%, rgba(247, 148, 29, 0.05), transparent 50%),
-    linear-gradient(180deg, rgba(8, 16, 25, 0.72), rgba(11, 21, 32, 0.68)),
-    url('/assets/kmf-bg.png') center/cover no-repeat fixed;
+    radial-gradient(760px 340px at 100% 0%, rgba(14, 165, 233, 0.04), transparent 50%),
+    var(--bg-app);
 }
 
 .app-footer {
@@ -718,14 +716,6 @@ a {
   box-shadow: var(--shadow-glow);
 }
 
-.brand-logo {
-  width: 46px;
-  height: auto;
-  border-radius: 10px;
-  box-shadow: var(--shadow-sm);
-  object-fit: contain;
-}
-
 .brand-title {
   font-family: var(--font-heading);
   font-size: 1rem;
@@ -738,15 +728,6 @@ a {
   font-size: 1rem;
   font-weight: 800;
   line-height: 1.2;
-}
-
-.login-logo {
-  display: block;
-  max-width: 180px;
-  height: auto;
-  margin: 0 auto 1rem;
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
 }
 
 .brand-chip {
@@ -1405,30 +1386,14 @@ input:focus {
   padding: 1.5rem;
   position: relative;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(240, 247, 252, 0.94)),
-    url('/assets/kmf-bg.png') center/cover no-repeat fixed;
+    radial-gradient(820px 420px at 18% 8%, var(--primary-soft), transparent 55%),
+    var(--bg-app);
 }
 
 [data-theme='dark'] .login-screen {
   background:
-    linear-gradient(180deg, rgba(8, 16, 25, 0.88), rgba(11, 21, 32, 0.94)),
-    url('/assets/kmf-bg.png') center/cover no-repeat fixed;
-}
-
-.login-milk {
-  position: fixed;
-  left: 3%;
-  bottom: 4%;
-  width: 240px;
-  max-width: 26vw;
-  opacity: 0.5;
-  filter: drop-shadow(0 12px 28px rgba(10, 126, 196, 0.22));
-  pointer-events: none;
-  z-index: 0;
-}
-
-[data-theme='dark'] .login-milk {
-  opacity: 0.4;
+    radial-gradient(820px 420px at 18% 8%, var(--primary-soft), transparent 55%),
+    var(--bg-app);
 }
 
 .login-card {
@@ -1444,19 +1409,6 @@ input:focus {
   flex-direction: column;
   gap: 1.2rem;
   animation: scale-in 0.3s var(--ease);
-}
-
-.brand-orb {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  margin: 0 auto 0.7rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  background: var(--gradient-primary);
-  box-shadow: var(--shadow-glow);
 }
 
 /* ---------------- Alerts / banners ---------------- */

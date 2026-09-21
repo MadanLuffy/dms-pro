@@ -40,11 +40,10 @@ export default function Header({ onOpenNewFile, searchQuery, setSearchQuery }) {
     <header className="app-header glass-header">
       <div className="header-inner header-bar">
         <button type="button" className="brand" onClick={() => navigate(homePath(user))}>
-          <img src="/assets/kmf-logo.png" alt="KMF Nandini" className="brand-logo" />
           <span>
-            <div className="brand-title">KMF Nandini</div>
+            <div className="brand-title">Document System</div>
             <p style={{ fontSize: '0.68rem', color: 'var(--text-light)' }}>
-              Official Noting · {user.departmentName || user.deptId}
+              {user.departmentName || user.deptId}
             </p>
           </span>
         </button>

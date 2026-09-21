@@ -107,9 +107,8 @@ export default function App() {
         {showHeader && (
           <footer className="app-footer">
             <span>
-              <strong>KMF Nandini</strong> · Karnataka Co-operative Milk Producers' Federation Ltd.
+              <strong>Document System</strong>
             </span>
-            <span>KMF Complex, Dr. M.H. Marigowda Road, Bengaluru — 560 029</span>
           </footer>
         )}
       </ErrorBoundary>
