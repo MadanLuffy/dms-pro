@@ -18,7 +18,7 @@ const STATUS_FILTERS = [
 
 export default function FileListPage({ searchQuery = '' }) {
   const navigate = useNavigate();
-  const { files, loading, loadFiles, pagination } = useFiles();
+  const { files, loading, loadFiles, pagination, counts } = useFiles();
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [page, setPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
@@ -59,14 +59,17 @@ export default function FileListPage({ searchQuery = '' }) {
 
   // KPI Dashboard Counts
   const statCounts = useMemo(() => {
-    const counts = { all: pagination.total || files.length, dept: 0, ceo: 0, approved: 0 };
-    for (const f of files) {
-      if (f.status === 'DEPT_HEAD_REVIEW') counts.dept++;
-      else if (f.status === 'CEO_REVIEW') counts.ceo++;
-      else if (f.status === 'APPROVED') counts.approved++;
+    if (counts && typeof counts.all === 'number') {
+      return counts;
     }
-    return counts;
-  }, [files, pagination.total]);
+    const c = { all: pagination.total || files.length, dept: 0, ceo: 0, approved: 0 };
+    for (const f of files) {
+      if (f.status === 'DEPT_HEAD_REVIEW') c.dept++;
+      else if (f.status === 'CEO_REVIEW') c.ceo++;
+      else if (f.status === 'APPROVED') c.approved++;
+    }
+    return c;
+  }, [counts, files, pagination.total]);
 
   const hasFilters = selectedStatus !== 'ALL' || searchQuery.trim();
 

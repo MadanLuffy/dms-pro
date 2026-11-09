@@ -32,49 +32,77 @@ function generateRefNo() {
   return `DMS-${rand}`;
 }
 
+function getUserFileScope(user) {
+  if (!user) return null;
+  if (user.role === 'STAFF') {
+    return { OR: [{ creatorId: user.id }, { assignedOfficerId: user.id }] };
+  }
+  if (user.role === 'DEPT_HEAD') {
+    return {
+      OR: [
+        { creatorId: user.id },
+        { targetDepts: { some: { deptId: user.deptId } } },
+      ],
+    };
+  }
+  if (user.role === 'CEO') {
+    return {};
+  }
+  return null;
+}
+
+function scopedWhere(scope, extra = {}) {
+  const parts = [];
+  if (scope && Object.keys(scope).length > 0) parts.push(scope);
+  if (extra && Object.keys(extra).length > 0) parts.push(extra);
+  if (parts.length === 0) return {};
+  if (parts.length === 1) return parts[0];
+  return { AND: parts };
+}
+
 export async function listFiles(req, res, next) {
   try {
+    const userScope = getUserFileScope(req.user);
+    if (!userScope) {
+      return res.json({
+        files: [],
+        total: 0,
+        page: 1,
+        pageSize: 50,
+        counts: { all: 0, dept: 0, ceo: 0, approved: 0 },
+      });
+    }
+
     const { status, department, q } = req.query || {};
     const { page, pageSize, skip, take } = parsePagination(req.query);
-    const where = {};
-    if (status && status !== 'ALL') where.status = status;
+
+    const filterConditions = [];
+    if (Object.keys(userScope).length > 0) {
+      filterConditions.push(userScope);
+    }
+    if (status && status !== 'ALL') {
+      filterConditions.push({ status });
+    }
     if (department && department !== 'ALL') {
-      where.targetDepts = { some: { deptId: department } };
+      filterConditions.push({ targetDepts: { some: { deptId: department } } });
     }
-    const search = q
-      ? {
-          OR: [
-            { subject: contains(q) },
-            { refNo: contains(q) },
-            { creator: { name: contains(q) } },
-          ],
-        }
-      : null;
-
-    if (req.user.role === 'STAFF') {
-      const scope = [{ creatorId: req.user.id }, { assignedOfficerId: req.user.id }];
-      if (search) {
-        where.AND = [search, { OR: scope }];
-      } else {
-        where.OR = scope;
-      }
-    } else if (req.user.role === 'DEPT_HEAD') {
-      const scope = [
-        { creatorId: req.user.id },
-        { targetDepts: { some: { deptId: req.user.deptId } } },
-      ];
-      if (search) {
-        where.AND = [search, { OR: scope }];
-      } else {
-        where.OR = scope;
-      }
-    } else if (req.user.role === 'SUPERADMIN') {
-      return res.json({ files: [], total: 0, page, pageSize });
-    } else if (search) {
-      where.OR = search.OR;
+    if (q) {
+      filterConditions.push({
+        OR: [
+          { subject: contains(q) },
+          { refNo: contains(q) },
+          { creator: { name: contains(q) } },
+        ],
+      });
     }
 
-    const [total, files] = await Promise.all([
+    const where = filterConditions.length === 0
+      ? {}
+      : filterConditions.length === 1
+        ? filterConditions[0]
+        : { AND: filterConditions };
+
+    const [total, files, allCount, deptCount, ceoCount, approvedCount] = await Promise.all([
       prisma.subjectFile.count({ where }),
       prisma.subjectFile.findMany({
         where,
@@ -83,9 +111,24 @@ export async function listFiles(req, res, next) {
         skip,
         take,
       }),
+      prisma.subjectFile.count({ where: scopedWhere(userScope) }),
+      prisma.subjectFile.count({ where: scopedWhere(userScope, { status: 'DEPT_HEAD_REVIEW' }) }),
+      prisma.subjectFile.count({ where: scopedWhere(userScope, { status: 'CEO_REVIEW' }) }),
+      prisma.subjectFile.count({ where: scopedWhere(userScope, { status: 'APPROVED' }) }),
     ]);
 
-    res.json({ files: files.map(toPublicListFile), total, page, pageSize });
+    res.json({
+      files: files.map(toPublicListFile),
+      total,
+      page,
+      pageSize,
+      counts: {
+        all: allCount,
+        dept: deptCount,
+        ceo: ceoCount,
+        approved: approvedCount,
+      },
+    });
   } catch (err) {
     next(err);
   }

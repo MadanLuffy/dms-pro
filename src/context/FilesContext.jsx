@@ -14,6 +14,7 @@ export function FilesProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [pagination, setPagination] = useState({ page: 1, pageSize: 50, total: 0 });
+  const [counts, setCounts] = useState({ all: 0, dept: 0, ceo: 0, approved: 0 });
   const loadSeq = useRef(0);
   const lastParams = useRef({ page: 1, pageSize: 50 });
 
@@ -35,6 +36,9 @@ export function FilesProvider({ children }) {
           pageSize: data.pageSize || merged.pageSize || 50,
           total: data.total ?? list.length,
         });
+        if (data.counts) {
+          setCounts(data.counts);
+        }
       }
       return list;
     } catch (err) {
@@ -93,7 +97,7 @@ export function FilesProvider({ children }) {
   }, [user, toast, loadFiles]);
 
   return (
-    <FilesContext.Provider value={{ files, loading, error, pagination, loadFiles, refreshFile, setFiles }}>
+    <FilesContext.Provider value={{ files, loading, error, pagination, counts, loadFiles, refreshFile, setFiles }}>
       {children}
     </FilesContext.Provider>
   );
