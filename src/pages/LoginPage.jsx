@@ -32,12 +32,6 @@ export default function LoginPage() {
     }
   };
 
-  const fillQuickCreds = (em, pass = 'Password@123') => {
-    setEmail(em);
-    setPassword(pass);
-    setError('');
-  };
-
   return (
     <div className="login-screen" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: 0, background: 'var(--bg-app)' }}>
       {/* Top Professional Nav */}
@@ -130,51 +124,6 @@ export default function LoginPage() {
               {busy ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
-
-          {/* Quick Demo Role Selection Tray */}
-          <div className="gov-role-selector" style={{ marginTop: '1.25rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.85rem' }}>
-            <span className="gov-role-label" style={{ fontSize: '0.72rem', color: 'var(--text-light)', fontWeight: 600 }}>
-              ⚡ Quick Test Logins:
-            </span>
-            <div className="gov-role-chips" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.45rem', marginTop: '0.45rem' }}>
-              <button
-                type="button"
-                className="gov-role-chip"
-                onClick={() => fillQuickCreds('ceo@skandasoft.com')}
-                title="Login as Managing Director / Executive"
-              >
-                <span>🏢</span>
-                <span><strong>MD</strong> (Executive)</span>
-              </button>
-              <button
-                type="button"
-                className="gov-role-chip"
-                onClick={() => fillQuickCreds('sunil.verma@skandasoft.com')}
-                title="Login as Department Head"
-              >
-                <span>💼</span>
-                <span><strong>Dept</strong> Head</span>
-              </button>
-              <button
-                type="button"
-                className="gov-role-chip"
-                onClick={() => fillQuickCreds('ravi.kumar@skandasoft.com')}
-                title="Login as Section Staff"
-              >
-                <span>📦</span>
-                <span><strong>Section</strong> Staff</span>
-              </button>
-              <button
-                type="button"
-                className="gov-role-chip"
-                onClick={() => fillQuickCreds('admin@skandasoft.com')}
-                title="Login as System Admin"
-              >
-                <span>⚙️</span>
-                <span><strong>System</strong> Admin</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
