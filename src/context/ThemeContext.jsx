@@ -5,8 +5,8 @@ const STORAGE_KEY = 'dms_theme';
 function getInitialTheme() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'light' || stored === 'dark') return stored;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    if (stored === 'dark') return 'dark';
+    return 'light';
   } catch {
     return 'light';
   }
