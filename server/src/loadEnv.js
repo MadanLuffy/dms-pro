@@ -24,3 +24,14 @@ function applyEnvFile(filePath) {
 }
 
 applyEnvFile(envPath);
+
+// Cloud / Production automatic defaults if env vars were not manually provided
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = 'file:./dev.db';
+  console.log('[dms-server] Notice: DATABASE_URL not set in environment. Using default SQLite database (file:./dev.db).');
+}
+
+if (!process.env.CLIENT_ORIGIN && process.env.RENDER_EXTERNAL_URL) {
+  process.env.CLIENT_ORIGIN = process.env.RENDER_EXTERNAL_URL;
+  console.log('[dms-server] Detected RENDER_EXTERNAL_URL:', process.env.RENDER_EXTERNAL_URL);
+}

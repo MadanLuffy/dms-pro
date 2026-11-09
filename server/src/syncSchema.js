@@ -57,7 +57,8 @@ export function syncSchema() {
   }
 
   try {
-    const databaseUrl = process.env.DATABASE_URL || '';
+    const databaseUrl = process.env.DATABASE_URL || 'file:./dev.db';
+    process.env.DATABASE_URL = databaseUrl;
     const isPostgres = /^postgres(ql)?:\/\//i.test(databaseUrl);
     const schemaArgs = isPostgres ? ['--schema=prisma/schema.postgresql.prisma'] : [];
     runPrisma(['generate', ...schemaArgs]);

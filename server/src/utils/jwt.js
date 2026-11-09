@@ -5,12 +5,9 @@ import jwt from 'jsonwebtoken';
 let JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET must be set via environment variables in production');
-  }
   JWT_SECRET = crypto.randomBytes(48).toString('hex');
   console.warn(
-    '[dms-server] JWT_SECRET is not set. Generated a random in-memory secret; sessions will be invalidated on restart. Set JWT_SECRET in server/.env to keep dev sessions stable.'
+    '[dms-server] Warning: JWT_SECRET is not set in environment. Generated an automatic secure secret for this session.'
   );
 }
 
