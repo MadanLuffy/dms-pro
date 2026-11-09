@@ -12,6 +12,7 @@ import NoteThreadPage from './pages/NoteThreadPage';
 import NewFilePage from './pages/NewFilePage';
 import AuditPage from './pages/AuditPage';
 import AdminPage from './pages/AdminPage';
+import Footer from './components/Footer';
 
 function RoleGate({ allow, children }) {
   const { user, loading } = useAuth();
@@ -104,13 +105,7 @@ export default function App() {
           <Route path="*" element={<HomeRedirect />} />
         </Routes>
         </main>
-        {showHeader && (
-          <footer className="app-footer">
-            <span>
-              <strong>Document System</strong>
-            </span>
-          </footer>
-        )}
+        {showHeader && <Footer />}
       </ErrorBoundary>
     </div>
   );

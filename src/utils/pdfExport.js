@@ -85,7 +85,7 @@ export async function generateFilePDFReport(file) {
     <div style="border-bottom:3px solid #1e40af;padding-bottom:15px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;">
       <div>
         <h1 style="color:#1e3a8a;font-size:24px;margin:0;font-weight:800;">Document System</h1>
-        <p style="margin:4px 0 0 0;font-size:11px;color:#475569;">Karnataka Milk Federation · Official Noting System — File report</p>
+        <p style="margin:4px 0 0 0;font-size:11px;color:#475569;">Enterprise Administration · Noting System — File Report</p>
       </div>
       <div style="text-align:right;">
         <span style="background:#dbeafe;color:#1e40af;padding:4px 10px;font-weight:bold;border-radius:4px;font-size:12px;">FILE REPORT</span>
@@ -204,7 +204,7 @@ export async function generateNotesSheetPDF(file) {
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(9.5);
   pdf.setTextColor(71, 85, 105);
-  pdf.text(`Official Noting Sheet · ${file.refNo || ''}`, margin, state.y);
+  pdf.text(`Noting Sheet · ${file.refNo || ''}`, margin, state.y);
   state.y += 6;
 
   pdf.setDrawColor(37, 99, 235);

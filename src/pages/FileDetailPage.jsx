@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Download, Shield, Check, X, Paperclip, Send, Trash2, ChevronRight, RefreshCw, Loader2, PenLine, MessageSquareReply, UserCog, MoreHorizontal, FileText, Clock } from 'lucide-react';
+import { ArrowLeft, Download, Shield, ShieldCheck, Check, X, Paperclip, Send, Trash2, ChevronRight, RefreshCw, Loader2, PenLine, MessageSquareReply, UserCog, MoreHorizontal, FileText, Clock, Printer } from 'lucide-react';
 import { api } from '../lib/api';
 import { EVENT_NAMES } from '../lib/events';
 import { connectSocket, getSocket } from '../lib/socket';
@@ -10,7 +10,8 @@ import { useFiles } from '../context/FilesContext';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
 import Spinner from '../components/Spinner';
-import { formatDate } from '../utils/format';
+import DocumentPreview from '../components/DocumentPreview';
+import { formatDate, formatBytes, roleLabel } from '../utils/format';
 import { wrapLocalFiles, toUploadFiles, removePendingFile } from '../utils/pendingFiles';
 import { canDeleteSubjectFile } from '../utils/files';
 
@@ -68,6 +69,7 @@ export default function FileDetailPage() {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [exportBusy, setExportBusy] = useState('');
+  const [previewAttachment, setPreviewAttachment] = useState(null);
 
   const fileInputRef = useRef(null);
   const menuRef = useRef(null);
@@ -129,10 +131,6 @@ export default function FileDetailPage() {
     const q = noteSearch.toLowerCase();
     return rootNotes.filter((n) => (n.content || '').toLowerCase().includes(q));
   }, [rootNotes, noteSearch]);
-  const totalReplies = useMemo(() => {
-    const countR = (list) => list.reduce((sum, n) => sum + (n.replies?.length || 0) + countR(n.replies || []), 0);
-    return countR(rootNotes);
-  }, [rootNotes]);
 
   const myDeptApproval = useMemo(
     () =>
@@ -153,7 +151,7 @@ export default function FileDetailPage() {
   const canDeleteFile = canDeleteSubjectFile(user, file);
   const higherOfficers = users.filter((u) => ['DEPT_HEAD', 'CEO'].includes(u.role));
 
-  const recipientValue = (o) => `${o.name} (${o.role.replace(/_/g, ' ')} - ${o.departmentName || o.deptId})`;
+  const recipientValue = (o) => `${o.name} (${roleLabel(o.role)} - ${o.departmentName || o.deptId})`;
 
   const forwardRecipients = useMemo(() => {
     return users
@@ -367,6 +365,10 @@ export default function FileDetailPage() {
             {exportBusy === 'notes' ? <Loader2 size={15} className="spin" /> : <FileText size={15} />}
             Export Notes PDF
           </button>
+          <button onClick={() => window.print()} className="btn btn-secondary btn-sm" title="Print File Docket">
+            <Printer size={15} />
+            Print Docket
+          </button>
           {canDeleteFile && (
             <button type="button" onClick={() => setDeleteOpen(true)} className="btn btn-danger btn-sm">
               <Trash2 size={15} /> Delete File
@@ -390,42 +392,44 @@ export default function FileDetailPage() {
       </div>
 
       {(canApproveDept || canApproveCeo) && (
-        <div className="signoff-banner">
+        <div className="signoff-banner" style={{ border: '2px solid #16a34a', background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', boxShadow: '0 4px 14px rgba(22, 163, 74, 0.18)' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Shield size={17} style={{ color: 'var(--success)' }} />
-              <strong style={{ fontSize: '0.9rem', color: 'var(--success-deep)' }}>Approval pending</strong>
+              <Shield size={18} style={{ color: '#15803d' }} />
+              <strong style={{ fontSize: '0.92rem', color: '#166534' }}>
+                Approval Pending
+              </strong>
             </div>
-            <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>Sign as {user.name} ({user.role})</div>
+            <div style={{ fontSize: '0.78rem', color: '#334155', marginTop: '0.2rem', fontWeight: 600 }}>
+              Authorized Reviewer: <strong>{user.name}</strong> ({roleLabel(user.role)})
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button type="button" onClick={() => setCommentModal(canApproveCeo ? 'CEO_APPROVE' : 'APPROVE')} className="btn btn-success">
+          <div style={{ display: 'flex', gap: '0.6rem' }}>
+            <button type="button" onClick={() => setCommentModal(canApproveCeo ? 'CEO_APPROVE' : 'APPROVE')} className="btn btn-success" style={{ padding: '0.55rem 1.2rem', fontSize: '0.85rem' }}>
               <Check size={16} /> Approve & Sign
             </button>
-            <button type="button" onClick={() => setCommentModal(canApproveCeo ? 'CEO_RETURN' : 'RETURN')} className="btn btn-danger">
+            <button type="button" onClick={() => setCommentModal(canApproveCeo ? 'CEO_RETURN' : 'RETURN')} className="btn btn-danger" style={{ padding: '0.55rem 1.1rem', fontSize: '0.85rem' }}>
               <X size={16} /> Return Note
             </button>
           </div>
         </div>
       )}
 
-      {/* Notes Section */}
-      <div className="surface-card" style={{ padding: '1rem 1.15rem' }}>
-        <div className="note-sheet-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.6rem', flexWrap: 'wrap' }}>
+      {/* Notes Section - Executive Office Style Note Index */}
+      <div className="surface-card office-noting-section" style={{ padding: '1.1rem 1.25rem', borderTop: '3px solid #003366' }}>
+        <div className="note-sheet-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.6rem', flexWrap: 'wrap', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.65rem', marginBottom: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <h2 style={{ margin: 0 }}>
-              Notes
-              <span className="note-sheet-count">{rootNotes.length}</span>
-              {totalReplies > 0 && (
-                <span style={{ fontSize: '0.74rem', color: 'var(--text-light)', fontWeight: 500, marginLeft: '0.4rem' }}>
-                  ({totalReplies} {totalReplies === 1 ? 'reply' : 'replies'})
-                </span>
-              )}
+            <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#003366', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+              <FileText size={18} style={{ color: '#003366' }} />
+              <span>Noting Minutes & Remarks</span>
+              <span className="note-sheet-count" style={{ background: '#e0ecf7', color: '#003366', padding: '0.12rem 0.55rem', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700 }}>
+                {rootNotes.length} {rootNotes.length === 1 ? 'note' : 'notes'}
+              </span>
             </h2>
             {rootNotes.length > 2 && (
               <input
                 type="text"
-                placeholder="Search notes..."
+                placeholder="ಟಿಪ್ಪಣಿ ಹುಡುಕಿ / Search notes..."
                 value={noteSearch}
                 onChange={(e) => setNoteSearch(e.target.value)}
                 style={{
@@ -435,89 +439,66 @@ export default function FileDetailPage() {
                   border: '1px solid var(--border-color)',
                   background: 'var(--bg-subtle)',
                   outline: 'none',
-                  width: 140
+                  width: 160
                 }}
               />
             )}
           </div>
-          <button type="button" onClick={() => { setConfirmDeptIds([]); setNewNoteTitle(''); setNoteModal(true); }} className="btn btn-secondary btn-sm">
+          <button type="button" onClick={() => { setConfirmDeptIds([]); setNewNoteTitle(''); setNoteModal(true); }} className="btn btn-primary btn-sm">
             <PenLine size={14} /> Write Note
           </button>
         </div>
 
-        <div className="note-sheet">
+        <div className="note-sheet" style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
           {filteredRootNotes.length === 0 && (
             <p className="note-empty">{rootNotes.length === 0 ? <>No notes yet. Click <strong>Write Note</strong> to add one.</> : 'No notes match your search.'}</p>
           )}
           {filteredRootNotes.map((note, noteIdx) => {
-            const noteReplies = note.replies || [];
             const parsed = parseNoteContent(note.content);
+            const noteTitle = parsed.title || (note.content || '').split('\n')[0]?.trim() || `Note #${noteIdx + 1}`;
             return (
               <div
                 key={note.id}
                 data-testid="note-card"
-                className="note-item"
+                className="note-item office-note-title-box"
                 style={{ cursor: 'pointer' }}
                 onClick={() => navigate(`/files/${id}/notes/${note.id}`)}
               >
-                <div className="note-item-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
-                    <span className="note-num-badge">Note #{noteIdx + 1}</span>
-                    <div className="note-item-time">
-                      <Clock size={12} /> {formatDate(note.createdAt)}
-                    </div>
-                    {note.author?.id === user?.id && (
-                      !note.seenByHead ? (
-                        <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem', borderRadius: 4, background: '#fef3c7', color: '#b45309', fontWeight: 600 }}>
-                          Unseen by Head
-                        </span>
-                      ) : (
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-light)', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
-                          <Check size={11} style={{ color: 'var(--success)' }} /> Seen by Head
-                        </span>
-                      )
-                    )}
-                  </div>
+                <div className="office-note-main">
+                  <span className="office-note-num">Note #{noteIdx + 1}</span>
+                  <FileText size={16} className="office-note-icon" />
+                  <span className="office-note-title-text" title={noteTitle}>
+                    {noteTitle}
+                  </span>
+                  {note.author?.id === user?.id && (
+                    !note.seenByHead ? (
+                      <span className="office-unseen-badge">
+                        Unseen by Head
+                      </span>
+                    ) : (
+                      <span className="office-seen-badge">
+                        <Check size={11} style={{ color: 'var(--success)' }} /> Seen by Head
+                      </span>
+                    )
+                  )}
+                </div>
 
+                <div className="office-note-side">
                   {canDeleteNote(note) && (
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); handleDeleteNote(note); }}
-                      className="btn btn-secondary btn-sm"
+                      className="btn btn-secondary btn-sm office-note-del-btn"
                       title="Delete note (unviewed by Head)"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.25rem',
-                        padding: '0.2rem 0.5rem',
-                        fontSize: '0.72rem',
-                        height: 'auto',
-                        lineHeight: 1.25,
-                        borderRadius: 4,
-                        color: 'var(--danger)',
-                        borderColor: 'var(--border-color)',
-                      }}
                     >
-                      <Trash2 size={11} /> Delete
+                      <Trash2 size={12} /> Delete
                     </button>
                   )}
+                  <div className="office-note-open-cue">
+                    <span>Open Note</span>
+                    <ChevronRight size={15} />
+                  </div>
                 </div>
-
-                {parsed.title && (
-                  <div className="note-title-heading">
-                    <FileText size={14} />
-                    <span>{parsed.title}</span>
-                  </div>
-                )}
-                <div className="note-item-body">{parsed.body}</div>
-
-                {noteReplies.length > 0 && (
-                  <div style={{ marginTop: '0.45rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <span className="note-reply-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--primary-deep)', fontWeight: 600 }}>
-                      <MessageSquareReply size={13} /> {noteReplies.length} repl{noteReplies.length === 1 ? 'y' : 'ies'} · Click to view
-                    </span>
-                  </div>
-                )}
               </div>
             );
           })}
@@ -539,7 +520,7 @@ export default function FileDetailPage() {
         }
       >
         <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: '1rem' }}>
-          Signing as <strong>{user?.name} ({user?.role})</strong>.
+          Signing as <strong>{user?.name} ({roleLabel(user?.role)})</strong>.
         </p>
         <textarea rows={3} className="field-control" placeholder="Comment (optional)" value={commentText} onChange={(e) => setCommentText(e.target.value)} />
       </Modal>
@@ -646,7 +627,7 @@ export default function FileDetailPage() {
         <select id="reassign-officer" className="field-control" value={reassignId} onChange={(e) => setReassignId(e.target.value)}>
           <option value="">— Select officer —</option>
           {higherOfficers.map((o) => (
-            <option key={o.id} value={o.id}>{o.name} ({o.role.replace(/_/g, ' ')} - {o.departmentName || o.deptId})</option>
+            <option key={o.id} value={o.id}>{o.name} ({roleLabel(o.role)} - {o.departmentName || o.deptId})</option>
           ))}
         </select>
       </Modal>
@@ -668,6 +649,19 @@ export default function FileDetailPage() {
         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
           This will permanently remove <strong>{file.refNo}</strong> and its notes and attachments. Approved files cannot be deleted. This cannot be undone.
         </p>
+      </Modal>
+
+      <Modal
+        open={!!previewAttachment}
+        onClose={() => setPreviewAttachment(null)}
+        title={previewAttachment ? `Document Preview: ${previewAttachment.filename}` : 'Document Preview'}
+        width={850}
+      >
+        {previewAttachment && (
+          <div style={{ minHeight: 460 }}>
+            <DocumentPreview attachment={previewAttachment} />
+          </div>
+        )}
       </Modal>
     </div>
   );

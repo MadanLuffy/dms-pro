@@ -18,6 +18,10 @@ const emptyUser = {
 };
 
 function roleText(role = '') {
+  if (role === 'CEO') return 'Managing Director (MD)';
+  if (role === 'DEPT_HEAD') return 'Department Manager / Section Head';
+  if (role === 'STAFF') return 'Section Staff / Assistant';
+  if (role === 'SUPERADMIN') return 'System Administrator';
   return String(role).replace(/_/g, ' ');
 }
 
@@ -125,18 +129,23 @@ export default function AdminPage() {
 
   return (
     <div className="page admin-page">
-      <div className="page-head">
+      <div className="page-head" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.85rem' }}>
         <div>
-          <h1>Administration</h1>
-          <p className="page-kicker">Create departments and user accounts. File review stays with department heads and the CEO.</p>
+          <div style={{ fontSize: '0.74rem', color: '#2563eb', fontWeight: 700 }}>Enterprise Admin Console</div>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: '0.1rem 0' }}>
+            Administration & Organization Setup
+          </h1>
+          <p className="page-kicker">Create departments and user accounts. File review stays with department heads and the Managing Director (MD).</p>
         </div>
       </div>
 
       {error && <div role="alert" className="alert alert-error">{error}</div>}
 
-      <div className="surface-card admin-create">
+      <div className="surface-card admin-create" style={{ borderTop: '2px solid var(--primary)' }}>
         <form className="admin-create-col" onSubmit={handleCreateDept}>
-          <h2><Building2 size={14} /> New Department</h2>
+          <h2 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#003366' }}>
+            <Building2 size={16} /> New Department
+          </h2>
           <label htmlFor="dept-id" className="field-label">Department ID</label>
           <input
             id="dept-id"
@@ -165,7 +174,9 @@ export default function AdminPage() {
         <div className="admin-create-split" aria-hidden="true" />
 
         <form className="admin-create-col admin-create-user" onSubmit={handleCreateUser}>
-          <h2><UserPlus size={14} /> New User</h2>
+          <h2 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#003366' }}>
+            <UserPlus size={16} /> New User Account
+          </h2>
           <div className="admin-user-fields">
             <div>
               <label htmlFor="user-name" className="field-label">Full Name</label>

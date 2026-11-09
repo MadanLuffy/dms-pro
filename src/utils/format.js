@@ -25,10 +25,21 @@ export function formatBytes(bytes) {
 const STATUS_LABELS = {
   DRAFT: 'Draft',
   DEPT_HEAD_REVIEW: 'Department Review',
-  CEO_REVIEW: 'CEO Review',
+  CEO_REVIEW: 'MD / CEO Review',
   APPROVED: 'Approved & Closed',
   RETURNED: 'Returned',
 };
+
+const ROLE_LABELS = {
+  CEO: 'Managing Director (MD)',
+  DEPT_HEAD: 'Department Manager / Section Head',
+  STAFF: 'Section Assistant / Staff',
+  SUPERADMIN: 'System Administrator',
+};
+
+export function roleLabel(role) {
+  return ROLE_LABELS[role] || role?.replace(/_/g, ' ') || '—';
+}
 
 export function statusLabel(status) {
   return STATUS_LABELS[status] || status?.replace(/_/g, ' ') || '—';

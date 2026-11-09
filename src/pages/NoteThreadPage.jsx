@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Clock, CornerDownRight, Loader2, MessageSquareReply, Paperclip, Send, X, FileText, Check, Trash2 } from 'lucide-react';
+import { ArrowLeft, Clock, CornerDownRight, Loader2, MessageSquareReply, Paperclip, Send, X, FileText, Check, Trash2, ShieldCheck } from 'lucide-react';
 import { api } from '../lib/api';
 import { EVENT_NAMES } from '../lib/events';
 import { connectSocket, getSocket } from '../lib/socket';
@@ -13,7 +13,29 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import { formatDate } from '../utils/format';
 import { canDeleteAttachment } from '../utils/attachments';
 
-const roleLabel = (role = '') => role.replace(/_/g, ' ');
+const roleLabel = (role = '') => {
+  if (role === 'CEO') return 'Managing Director (MD)';
+  if (role === 'DEPT_HEAD') return 'Department Manager / Section Head';
+  if (role === 'STAFF') return 'Section Staff / Assistant';
+  if (role === 'SUPERADMIN') return 'System Administrator';
+  return role.replace(/_/g, ' ');
+};
+
+const shortRole = (role = '') => {
+  if (role === 'CEO') return 'MD';
+  if (role === 'DEPT_HEAD') return 'Dept Head';
+  if (role === 'STAFF') return 'Staff';
+  if (role === 'SUPERADMIN') return 'Admin';
+  return role.replace(/_/g, ' ');
+};
+
+const formatSignoffAuthor = (author) => {
+  if (!author) return '';
+  const name = author.name || 'User';
+  if (/\(.*?\)/.test(name)) return name;
+  const role = shortRole(author.role);
+  return role ? `${name} (${role})` : name;
+};
 
 function parseNoteContent(rawContent = '') {
   const str = String(rawContent || '');
@@ -342,6 +364,19 @@ export default function NoteThreadPage() {
               ))}
             </div>
           )}
+
+          {/* Sleek inline signoff stamp */}
+          {node.author && (
+            <div className="note-signoff-bar">
+              <span className="signoff-status">
+                <ShieldCheck size={12} />
+                <span>Approved</span>
+              </span>
+              <span className="signoff-author">{formatSignoffAuthor(node.author)}</span>
+              <span className="signoff-sep">·</span>
+              <span className="signoff-date">{formatDate(node.createdAt)}</span>
+            </div>
+          )}
         </div>
 
         {replyingTo === node.id && (
@@ -397,7 +432,7 @@ export default function NoteThreadPage() {
         </button>
         {file && (
           <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Official Noting Sheet · <strong style={{ color: 'var(--text-main)' }}>{file.refNo}</strong>
+            Noting Sheet · <strong style={{ color: 'var(--text-main)' }}>{file.refNo}</strong>
           </span>
         )}
       </div>
@@ -410,10 +445,10 @@ export default function NoteThreadPage() {
 
       {file && root && (
         <div className="file-detail-grid">
-          {/* Left: Official Noting Sheet */}
+          {/* Left: Noting Sheet */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             <div className="glass-panel" style={{ padding: '1rem 1.25rem' }}>
-              <div className="crumb">Official Noting Sheet</div>
+              <div className="crumb">Noting Sheet</div>
               <div style={{ fontSize: '1.05rem', fontWeight: 800, marginTop: '0.2rem' }}>{file.refNo} · {file.subject}</div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
                 {thread.length} minute{thread.length === 1 ? '' : 's'} recorded

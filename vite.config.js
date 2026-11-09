@@ -12,13 +12,13 @@ export default defineConfig({
   server: {
     port: 5188,
     strictPort: true,
-    host: '127.0.0.1',
+    host: '0.0.0.0',
     proxy,
   },
   preview: {
     port: 5188,
     strictPort: true,
-    host: '127.0.0.1',
+    host: '0.0.0.0',
     proxy,
   },
   build: {

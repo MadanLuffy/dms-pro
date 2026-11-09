@@ -182,13 +182,13 @@ async function main() {
   await clickByText(pageB, 'Send Reply');
   await pageB.waitForFunction(() => document.body.textContent.includes('E2E reply from IT dept head'), { timeout: 20000, polling: 200 });
   await pageB.goto(`${APP}/files/${fileId}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await pageB.waitForFunction(() => document.body.textContent.includes('1 reply'), { timeout: 20000, polling: 200 });
+  await pageB.waitForFunction(() => document.body.textContent.includes('E2E auto note to IT dept.'), { timeout: 20000, polling: 200 });
   log('sunil replied with attachment');
 
   // 4b. FIRST USER (Ravi) clicks the note -> thread page, replies to the reply (nested thread)
   step = 'first-user-sees-reply';
   await pageA.goto(`${APP}/files/${fileId}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await pageA.waitForFunction(() => document.body.textContent.includes('1 reply'), { timeout: 20000, polling: 200 });
+  await pageA.waitForFunction(() => document.body.textContent.includes('E2E auto note to IT dept.'), { timeout: 20000, polling: 200 });
   await pageA.waitForFunction(() => document.body.textContent.includes('Seen by Head'), { timeout: 15000, polling: 200 });
   log('first user (ravi) sees the reply and Seen by Head');
 

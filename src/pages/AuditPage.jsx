@@ -75,10 +75,13 @@ export default function AuditPage() {
 
   return (
     <div className="page" style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
-      <div className="page-head">
+      <div className="page-head" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.85rem' }}>
         <div>
-          <h2>Audit log</h2>
-          <p className="page-kicker">Record of logins, files, notes, and approvals.</p>
+          <div style={{ fontSize: '0.74rem', color: '#2563eb', fontWeight: 700 }}>Security & Compliance Trail</div>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: '0.1rem 0' }}>
+            Audit Trail Log
+          </h2>
+          <p className="page-kicker">Record of logins, file creations, notes, digital signatures, and approvals.</p>
         </div>
         <button onClick={exportCSV} className="btn btn-secondary">
           <Download size={16} /> Export CSV
@@ -88,15 +91,17 @@ export default function AuditPage() {
       <div className="glass-panel toolbar-row">
         <div className="search-field" style={{ flex: '1 1 240px', maxWidth: 360 }}>
           <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
-          <input type="search" aria-label="Search audit logs" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input type="search" aria-label="Search audit logs" placeholder="ಹುಡುಕಿ / Search audit logs..." value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
-        <select value={action} onChange={(e) => setAction(e.target.value)} aria-label="Filter by action" className="field-control" style={{ width: 'auto' }}>
-          {ACTIONS.map((a) => <option key={a} value={a}>{a === 'ALL' ? 'All Actions' : a.replace(/_/g, ' ')}</option>)}
+        <select value={action} onChange={(e) => setAction(e.target.value)} aria-label="Filter by action" className="field-control" style={{ width: 'auto', fontWeight: 600 }}>
+          {ACTIONS.map((a) => <option key={a} value={a}>{a === 'ALL' ? 'ಎಲ್ಲಾ ಕ್ರಮಗಳು / All Actions' : a.replace(/_/g, ' ')}</option>)}
         </select>
-        <div style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginLeft: 'auto' }}>Total Log Entries: <strong>{pagination.total}</strong></div>
+        <div style={{ fontSize: '0.82rem', color: 'var(--text-light)', marginLeft: 'auto' }}>
+          ಒಟ್ಟು ದಾಖಲೆಗಳು: <strong style={{ color: '#003366' }}>{pagination.total}</strong>
+        </div>
       </div>
 
-      <div className="surface-card" style={{ overflow: 'hidden' }}>
+      <div className="surface-card" style={{ overflow: 'hidden', borderTop: '3.5px solid #003366' }}>
         {loading ? (
           <Spinner label="Loading audit trail..." />
         ) : (
@@ -104,11 +109,11 @@ export default function AuditPage() {
             <table className="data-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr>
-                  <th>Timestamp</th>
-                  <th>User</th>
-                  <th>Action</th>
-                  <th>Details</th>
-                  <th>IP Address</th>
+                  <th style={{ minWidth: 140 }}>ಸಮಯ / Timestamp</th>
+                  <th style={{ minWidth: 120 }}>ಅಧಿಕಾರಿ / User</th>
+                  <th style={{ minWidth: 130 }}>ಕ್ರಮ / Action</th>
+                  <th>ವಿವರ / Details</th>
+                  <th style={{ minWidth: 110 }}>ಐಪಿ / IP Address</th>
                 </tr>
               </thead>
               <tbody>

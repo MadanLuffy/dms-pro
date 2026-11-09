@@ -11,7 +11,7 @@ export function FilesProvider({ children }) {
   const { user } = useAuth();
   const toast = useToast();
   const [files, setFiles] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [pagination, setPagination] = useState({ page: 1, pageSize: 50, total: 0 });
   const loadSeq = useRef(0);

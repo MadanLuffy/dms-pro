@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 import { wrapLocalFiles, toUploadFiles, removePendingFile } from '../utils/pendingFiles';
+import { roleLabel } from '../utils/format';
 
 export default function NewFilePage({ onClose }) {
   const navigate = useNavigate();
@@ -68,22 +69,29 @@ export default function NewFilePage({ onClose }) {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: 720, maxHeight: '92vh', padding: 0, overflow: 'hidden' }}>
-        <div className="modal-hero">
+      <div className="modal-content" style={{ maxWidth: 720, maxHeight: '92vh', padding: 0, overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: 14, boxShadow: '0 16px 40px rgba(0, 0, 0, 0.15)' }}>
+        <div className="modal-hero" style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #0b4f8a 100%)', padding: '1.1rem 1.4rem' }}>
           <div>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>Create New File</h3>
-            <p style={{ fontSize: '0.8rem', color: '#dbeafe', margin: '0.2rem 0 0 0' }}>Enter a subject. Choose departments later when you send a note.</p>
+            <div style={{ fontSize: '0.74rem', color: '#93c5fd', fontWeight: 600 }}>Enterprise Workspace</div>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '0.15rem 0 0', color: '#ffffff' }}>
+              Create New File
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: '#e2e8f0', margin: '0.2rem 0 0 0' }}>
+              Enter file details, subject, and assign departments for workflow tracking.
+            </p>
           </div>
           <button onClick={close} aria-label="Close" className="btn btn-secondary btn-sm" style={{ padding: '0.35rem', background: 'rgba(255,255,255,0.18)', border: 'none', color: '#ffffff' }}>
             <X size={18} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.15rem', maxHeight: 'calc(92vh - 80px)' }}>
+        <form onSubmit={handleSubmit} style={{ padding: '1.4rem 1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.1rem', maxHeight: 'calc(92vh - 90px)' }}>
           {error && <div role="alert" className="alert alert-error">{error}</div>}
 
           <div>
-            <label htmlFor="subject" className="field-label">Subject *</label>
+            <label htmlFor="subject" className="field-label" style={{ fontWeight: 800, fontSize: '0.78rem' }}>
+              ಕಡತದ ವಿಷಯ / Subject *
+            </label>
             <input id="subject" className="field-control" type="text" required autoFocus placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value.toUpperCase())} style={{ fontWeight: 600, fontSize: '0.95rem' }} />
           </div>
 
@@ -96,7 +104,7 @@ export default function NewFilePage({ onClose }) {
               <select id="recipient" className="field-control" value={assignedOfficerId} onChange={(e) => setAssignedOfficerId(e.target.value)} style={{ fontWeight: 600 }}>
                 <option value="">— Not assigned —</option>
                 {availableOfficers.map((o) => (
-                  <option key={o.id} value={o.id}>{o.name} ({o.role.replace(/_/g, ' ')} - {o.departmentName || o.deptId})</option>
+                  <option key={o.id} value={o.id}>{o.name} ({roleLabel(o.role)} - {o.departmentName || o.deptId})</option>
                 ))}
               </select>
             </div>

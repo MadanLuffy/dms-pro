@@ -16,7 +16,7 @@ async function main() {
   step = 'login-screen';
   await page.goto(APP, { waitUntil: 'networkidle0', timeout: 30000 });
   await page.waitForSelector('button[type="submit"]', { timeout: 15000 });
-  const title = await page.$eval('h2', (el) => el.textContent);
+  const title = await page.$eval('h1', (el) => el.textContent);
   console.log('LOGIN SCREEN TITLE:', title);
 
   // 2. Login as CEO
@@ -32,7 +32,10 @@ async function main() {
 
   // 3. Open first file detail
   step = 'open-file';
-  await page.click('table tbody tr');
+  await page.evaluate(() => {
+    const tr = document.querySelector('table tbody tr');
+    if (tr) tr.click();
+  });
   await page.waitForFunction(() => location.pathname.startsWith('/files/'), { timeout: 15000 });
   await new Promise((r) => setTimeout(r, 1500));
   const h1 = await page.$eval('h1', (el) => el.textContent);
