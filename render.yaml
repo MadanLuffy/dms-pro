@@ -14,6 +14,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: SKIP_SYNC_SCHEMA
+        value: "true"
       - key: CLIENT_ORIGIN
         value: https://dms-pro.onrender.com
       - key: UPLOAD_DIR

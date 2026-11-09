@@ -8,7 +8,11 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 
 async function main() {
   if (IS_PROD) {
-    syncSchema();
+    try {
+      syncSchema();
+    } catch (err) {
+      console.warn('[dms-server] Schema sync notice:', err?.message || err);
+    }
   }
 
   const { createApp } = await import('./app.js');
